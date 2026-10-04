@@ -42,6 +42,7 @@ Api PATCH "repos/$Repo" @{
   allow_rebase_merge     = $false
   allow_auto_merge       = $true
   security_and_analysis  = @{
+    advanced_security               = @{ status = "enabled" } # free for public repos; required for CodeQL uploads
     secret_scanning                 = @{ status = "enabled" }
     secret_scanning_push_protection = @{ status = "enabled" }
     dependabot_security_updates     = @{ status = "enabled" }

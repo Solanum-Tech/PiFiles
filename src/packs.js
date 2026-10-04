@@ -254,18 +254,32 @@
   };
 
   // ---------------------------------------------------------------- sanitising
+  // Icon packs are untrusted files, so SVG is cleaned with an allow-list: only drawing elements
+  // and presentation attributes survive. Anything else (scripts, links, animation, foreign
+  // content, event handlers, external references) is removed.
+  const SVG_TAGS = new Set(["svg", "g", "path", "circle", "ellipse", "rect", "line", "polyline", "polygon", "defs", "lineargradient", "radialgradient", "stop", "clippath", "mask", "pattern", "symbol", "use", "title", "desc", "image",
+    "filter", "fegaussianblur", "feoffset", "feblend", "fecolormatrix", "feflood", "fecomposite", "femerge", "femergenode", "fedropshadow"]);
+  const SVG_ATTRS = new Set(["id", "class", "viewbox", "xmlns", "xmlns:xlink", "version", "preserveaspectratio", "d", "x", "y", "x1", "y1", "x2", "y2", "cx", "cy", "r", "rx", "ry", "fx", "fy", "width", "height", "points", "pathlength",
+    "fill", "fill-rule", "fill-opacity", "clip-rule", "clip-path", "mask", "stroke", "stroke-width", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-dasharray", "stroke-dashoffset", "stroke-opacity",
+    "opacity", "transform", "offset", "stop-color", "stop-opacity", "gradientunits", "gradienttransform", "spreadmethod", "patternunits", "patterncontentunits", "patterntransform", "clippathunits", "maskunits", "maskcontentunits",
+    "filter", "filterunits", "primitiveunits", "in", "in2", "result", "stddeviation", "dx", "dy", "mode", "type", "values", "operator", "k1", "k2", "k3", "k4", "flood-color", "flood-opacity",
+    "color", "display", "visibility", "vector-effect", "shape-rendering", "href", "xlink:href", "style"]);
+  const SAFE_IMAGE = /^data:image\/(png|jpe?g|webp|gif);base64,[a-z0-9+/=\s]*$/i;
   function cleanSvg(text, cls) {
     try {
       const d = new DOMParser().parseFromString(String(text), "image/svg+xml");
       const svg = d.documentElement;
       if (!svg || svg.nodeName.toLowerCase() !== "svg" || d.querySelector("parsererror")) return null;
-      svg.querySelectorAll("script, foreignObject, iframe, object, embed, audio, video, animate[attributeName^='on'], set").forEach(n => n.remove());
+      for (const el of [...svg.querySelectorAll("*")]) if (!SVG_TAGS.has(el.nodeName.toLowerCase())) el.remove();
       for (const el of [svg, ...svg.querySelectorAll("*")]) {
+        const tag = el.nodeName.toLowerCase();
         for (const a of [...el.attributes]) {
-          const n = a.name.toLowerCase(), v = a.value.trim().toLowerCase();
-          if (n.startsWith("on")) el.removeAttribute(a.name);
-          else if ((n === "href" || n === "xlink:href" || n === "src") && !(v.startsWith("#") || v.startsWith("data:image/"))) el.removeAttribute(a.name);
-          else if (n === "style" && /url\(\s*['"]?(?!#|data:)/i.test(v)) el.removeAttribute(a.name);
+          const n = a.name.toLowerCase(), v = a.value.trim();
+          if (!SVG_ATTRS.has(n)) el.removeAttribute(a.name);
+          // References: same-document only ("#id"); <image> may embed a raster data: URL.
+          else if ((n === "href" || n === "xlink:href") && !(v.startsWith("#") || (tag === "image" && SAFE_IMAGE.test(v)))) el.removeAttribute(a.name);
+          // Inline styles and presentation values may only reference "#id" paint servers.
+          else if (/url\(\s*['"]?(?!#)/i.test(v) || /expression\s*\(|javascript\s*:|@import/i.test(v)) el.removeAttribute(a.name);
         }
       }
       // Hoist gradients/patterns into the shared defs so hidden copies can't break visible ones.
@@ -277,8 +291,10 @@
     } catch { return null; }
   }
   function cleanCss(css) {
+    // The CSS only ever goes into style.textContent (never parsed as HTML); "<" is removed anyway
+    // so no tag-like text survives in any form.
     return String(css || "")
-      .replace(/<\/?style[^>]*>/gi, "")
+      .replace(/</g, "")
       .replace(/@import[^;]*;?/gi, "")
       .replace(/url\(\s*(['"]?)(?!data:|#)[^)]*\)/gi, "none")
       .replace(/expression\s*\(/gi, "(")

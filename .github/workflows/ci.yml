@@ -126,6 +126,11 @@ jobs:
           fail-on-severity: moderate
           comment-summary-in-pr: on-failure
           deny-licenses: AGPL-3.0, SSPL-1.0
+          # Accepted advisories (each one reviewed; remove it once the cause is gone):
+          #  GHSA-wrw7-89jp-8q8g / RUSTSEC-2024-0429 - unsound glib::VariantStrIter in glib 0.18.
+          #    Linux only, pulled in by Tauri itself (gtk/webkit2gtk 0.18); PiFiles never calls glib.
+          #    The fix is glib >= 0.20, which needs Tauri to move to gtk-rs >= 0.20.
+          allow-ghsas: GHSA-wrw7-89jp-8q8g
 
   ci-passed:
     name: CI passed

@@ -1,0 +1,6 @@
+# Changes to CI/release automation, signing config and app permissions need a maintainer's review.
+/.github/                       @SirilJoseph
+/src-tauri/tauri.conf.json      @SirilJoseph
+/src-tauri/capabilities/        @SirilJoseph
+/src-tauri/build.rs             @SirilJoseph
+/src-tauri/src/security.rs      @SirilJoseph

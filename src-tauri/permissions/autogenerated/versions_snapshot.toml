@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-versions-snapshot"
+description = "Enables the versions_snapshot command without any pre-configured scope."
+commands.allow = ["versions_snapshot"]
+
+[[permission]]
+identifier = "deny-versions-snapshot"
+description = "Denies the versions_snapshot command without any pre-configured scope."
+commands.deny = ["versions_snapshot"]

@@ -1,0 +1,19 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "properties",
+  "description": "Properties windows: read an item's properties, checksum it, toggle read-only/hidden, close.",
+  "windows": ["props-*"],
+  "permissions": [
+    "core:default",
+    "core:window:allow-start-dragging",
+    "allow-properties-window-paths",
+    "allow-file-properties",
+    "allow-folder-stats",
+    "allow-file-sha256",
+    "allow-set-file-attributes",
+    "allow-close-window",
+    "allow-system-profile",
+    "allow-set-window-effect",
+    "allow-packs-list"
+  ]
+}

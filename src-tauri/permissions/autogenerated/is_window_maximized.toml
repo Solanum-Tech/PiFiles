@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-is-window-maximized"
+description = "Enables the is_window_maximized command without any pre-configured scope."
+commands.allow = ["is_window_maximized"]
+
+[[permission]]
+identifier = "deny-is-window-maximized"
+description = "Denies the is_window_maximized command without any pre-configured scope."
+commands.deny = ["is_window_maximized"]

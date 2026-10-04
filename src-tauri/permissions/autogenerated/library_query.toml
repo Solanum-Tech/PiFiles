@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-library-query"
+description = "Enables the library_query command without any pre-configured scope."
+commands.allow = ["library_query"]
+
+[[permission]]
+identifier = "deny-library-query"
+description = "Denies the library_query command without any pre-configured scope."
+commands.deny = ["library_query"]

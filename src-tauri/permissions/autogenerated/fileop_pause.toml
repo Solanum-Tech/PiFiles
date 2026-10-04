@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-fileop-pause"
+description = "Enables the fileop_pause command without any pre-configured scope."
+commands.allow = ["fileop_pause"]
+
+[[permission]]
+identifier = "deny-fileop-pause"
+description = "Denies the fileop_pause command without any pre-configured scope."
+commands.deny = ["fileop_pause"]

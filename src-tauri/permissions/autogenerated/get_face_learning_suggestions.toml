@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-get-face-learning-suggestions"
+description = "Enables the get_face_learning_suggestions command without any pre-configured scope."
+commands.allow = ["get_face_learning_suggestions"]
+
+[[permission]]
+identifier = "deny-get-face-learning-suggestions"
+description = "Denies the get_face_learning_suggestions command without any pre-configured scope."
+commands.deny = ["get_face_learning_suggestions"]

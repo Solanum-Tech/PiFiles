@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-shell-menu"
+description = "Enables the shell_menu command without any pre-configured scope."
+commands.allow = ["shell_menu"]
+
+[[permission]]
+identifier = "deny-shell-menu"
+description = "Denies the shell_menu command without any pre-configured scope."
+commands.deny = ["shell_menu"]

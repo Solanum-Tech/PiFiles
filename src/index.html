@@ -1,1 +1,491 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>PiFiles</title><link rel="stylesheet" href="styles.css" /><script type="module" src="/main.js" defer></script></head><body><div id="app"><div id="tabBar" role="tablist" aria-label="Tabs"><div id="tabList" class="tab-list"></div><button id="newTabBtn" class="tab-new" title="New tab (Ctrl+T)">+</button><div class="tab-spacer"></div><span class="tab-hint">PiFiles • Lightweight</span></div><header id="topbar" role="banner"><div class="top-left"><button id="sidebarToggle" class="icon-btn nav-toggle" aria-label="Toggle navigation">☰</button><div class="logo" aria-label="PiFiles"><span class="logo-mark">▦</span><span>PiFiles</span><span class="pill" style="font-weight:500">Lightweight</span></div><button id="backBtn" class="icon-btn" title="Back" aria-label="Back">←</button><button id="upBtn" class="icon-btn" title="Up" aria-label="Up">↑</button><button id="refreshBtn" class="icon-btn" title="Refresh" aria-label="Refresh">↻</button></div><label class="search-wrap" for="searchInput"><span class="search-icon">⌕</span><input id="searchInput" type="search" placeholder="Search anywhere on this device… (NTFS fast search)" autocomplete="off" spellcheck="false" /><span id="searchMeta" class="search-meta"></span><button id="searchClear" class="search-clear" aria-label="Clear search">✕</button></label><div class="top-right"><button id="rebuildIndexBtn" class="icon-btn small" title="Rebuild search index" aria-label="Rebuild index">⟳</button><span class="hint"><kbd>Ctrl</kbd><kbd>K</kbd> search · <kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>P</kbd> palette</span><div class="view-toggle" role="group" aria-label="View mode"><button id="viewListBtn" class="active" title="List view" aria-label="List view">☰</button><button id="viewGridBtn" title="Grid view" aria-label="Grid view">▦</button></div><div class="divider-v"></div><button id="themeBtn" class="icon-btn" title="Toggle theme" aria-label="Toggle theme">◐</button></div></header><div id="layout"><nav id="sidebar" aria-label="Navigation"><div class="sidebar-scroll"><div class="nav-section"><div class="nav-title">Favorites</div><button class="nav-item active" data-nav="home"><span class="ico">⌂</span> Home <span class="count" id="homeCount">—</span></button><button class="nav-item" data-nav="recent"><span class="ico">◷</span> Recent</button></div><div class="nav-section"><div class="nav-title">Drives</div><div id="drivesList" class="drives-list"><div class="loading"><span class="spinner"></span> Loading drives…</div></div><div id="storageBar" class="storage-bar hidden"><div id="storageFill" class="storage-fill" style="width:0%"></div></div></div><div class="nav-section"><div class="nav-title">Media Management</div><button class="nav-item" data-nav="media"><span class="ico">🖼</span> Media</button><button class="nav-item" data-nav="people"><span class="ico">👤</span> People</button><button class="nav-item" data-nav="devices"><span class="ico">💾</span> Devices</button></div><div class="nav-section"><div class="nav-title">Tags</div><button class="nav-item" data-nav="images"><span class="ico">🖼</span> Images</button><button class="nav-item" data-nav="videos"><span class="ico">▶</span> Videos</button><button class="nav-item" data-nav="docs"><span class="ico">📄</span> Documents</button></div></div><div class="sidebar-foot"><div id="sidebarStatus">Ready • <span id="driveCount">—</span> drives</div><div style="margin-top:4px;opacity:.8">Tauri • window.__TAURI__.core.invoke</div></div></nav><div id="sidebarResizer" class="resizer-v" title="Drag to resize sidebar"></div><div id="overlay" class="overlay"></div><main id="main"><div class="breadcrumb-bar" id="breadcrumbBar" aria-label="Breadcrumbs"><div id="breadcrumbView" class="breadcrumb-view"><div class="crumb"><button data-path=""><span>⌂</span> Home</button></div></div><input id="addressInput" class="address-input hidden" type="text" placeholder="Enter path e.g. C:\Users\Siril\Pictures" spellcheck="false" autocomplete="off" /><button id="addressGo" class="icon-btn small hidden" title="Go" aria-label="Go">→</button><button id="addressEditBtn" class="icon-btn small" title="Edit address (Ctrl+L)" aria-label="Edit path">✎</button><button id="addressCopyBtn" class="icon-btn small" title="Copy path" aria-label="Copy path">⧉</button></div><div class="toolbar"><div class="left"><span id="pathLabel" class="pill" title="Current path">—</span><span id="itemCount" class="pill">— items</span><span id="selectionCount" class="pill hidden">0 selected</span></div><div class="right"><select id="groupSelect" class="sort-select" title="Group by"><option value="none">Group: None</option><option value="date">Group: Date</option><option value="type">Group: Type</option><option value="size">Group: Size</option></select><select id="sortSelect" class="sort-select"><option value="name-asc">Name A→Z</option><option value="name-desc">Name Z→A</option><option value="date-desc">Newest</option><option value="date-asc">Oldest</option><option value="size-desc">Largest</option><option value="size-asc">Smallest</option></select><button id="selectAllBtn" class="tbtn" title="Select all (Ctrl+A)">Select all</button><button id="newFolderBtn" class="tbtn" title="New folder">+ Folder</button><button id="detailsToggle" class="icon-btn small" title="Toggle details pane" aria-label="Toggle details">◧</button><span id="loadingLabel" class="hidden" style="display:inline-flex;align-items:center;gap:6px"><span class="spinner"></span> Loading</span></div></div><div id="searchHeader" class="search-header hidden"><span>Search: <strong id="searchQueryLabel"></strong></span><span id="searchStats" class="pill"></span><button id="clearSearchBtn" class="icon-btn" style="width:auto;padding:0 10px;height:24px;font-size:12px;border:1px solid var(--border);border-radius:999px">Clear ✕</button></div><div class="viewport-wrap" id="viewportWrap"><div id="fileViewport" tabindex="0" aria-label="File list"><div id="fileSpacer"></div><div id="fileContainer"></div></div><div id="emptyState" class="empty hidden"><div class="ico">📁</div><div><strong>Folder is empty</strong><br/><span style="color:var(--text-3)">No files to display</span></div><button class="load-more" style="margin-top:8px" onclick="document.getElementById('newFolderBtn').click()">Create folder</button></div><div id="loadMoreWrap" class="hidden" style="padding:8px;display:flex;justify-content:center;background:var(--bg)"><button id="loadMoreBtn" class="load-more">Load more (next 100)</button></div></div><div id="mediaView" class="hidden" style="flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden"><div class="media-tabs-wrap"><div class="media-tabs" role="tablist"><button class="media-tab active" data-tab="people" role="tab" aria-selected="true">People Based</button><button class="media-tab" data-tab="devices" role="tab" aria-selected="false">Device Based</button></div></div><div class="media-content" id="mediaContent"><div id="peopleTab" data-panel="people"><div class="group"><div class="group-head" style="flex-wrap:wrap;gap:8px"><span class="group-title">By Person / Folder</span><span id="peopleCount" class="group-count">—</span><input id="peopleFilter" type="search" placeholder="Filter people�" autocomplete="off" spellcheck="false" style="margin-left:auto;height:28px;padding:0 10px;border:1px solid var(--border);border-radius:999px;background:var(--bg-2);font-size:12px;min-width:140px;max-width:200px" /><button id="peopleRefreshBtn" class="tbtn" style="height:28px" title="Re-detect faces">? Redetect</button></div><div id="peopleGrid" class="group-grid"></div><div id="peopleEmpty" class="empty hidden"><div class="ico">👤</div><div>No face clusters yet — grouping by directory.</div></div></div></div><div id="devicesTab" data-panel="devices" class="hidden"><div class="group"><div class="group-head"><span class="group-title">By Drive / Volume</span><span id="devicesCount" class="group-count">—</span></div><div id="devicesGrid" class="group-grid"></div></div><div class="group"><div class="group-head"><span class="group-title">By File Type / Camera Model</span><span class="group-count">metadata</span></div><div id="deviceMetaGrid" class="group-grid"></div></div></div></div></div><div class="statusbar"><span id="statusText">Ready</span><span id="selectionInfo" class="hidden"></span><span id="layoutInfo" class="pill" style="font-size:10px">List • No group</span><label class="status-check" title="Show hidden items"><input type="checkbox" id="hiddenToggle"> Hidden</label><span id="zoomLabel">100%</span><span style="margin-left:auto" id="statusRight">Lightweight • virtualized • debounced 200ms</span></div></main><div id="detailsResizer" class="resizer-v hidden" title="Drag to resize details"></div><aside id="detailsPane" class="hidden" aria-label="Details"><div class="details-head"><strong>Details</strong><span id="detailsCount" class="pill" style="font-size:10px">—</span><button id="detailsClose" class="icon-btn small" title="Close details" aria-label="Close">✕</button></div><div id="detailsContent" class="details-content"><div id="detailsPreview" class="details-preview"><div class="empty" style="padding:16px"><div class="ico">👁</div><div>Select a file to preview</div></div></div><div id="detailsProps" class="details-props"></div></div></aside></div></div><div id="commandPalette" class="cmd-overlay hidden" role="dialog" aria-modal="true"><div class="cmd-backdrop"></div><div class="cmd-box" role="listbox"><div class="cmd-input-wrap"><span>›</span><input id="cmdInput" type="text" placeholder="Type a command or search… (Go to C:\, Search, Toggle theme, Rebuild index)" autocomplete="off" spellcheck="false" /><span class="hint" style="display:block">Esc to close</span></div><div id="cmdList" class="cmd-list"></div><div class="cmd-hint">↑↓ navigate • Enter select • Esc close • Ctrl+Shift+P</div></div></div><div id="contextMenu" class="ctx-menu hidden" role="menu"></div><div id="toast" role="status" aria-live="polite"></div></body></html>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PiFiles</title>
+    <link rel="icon" href="logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="fluent.css" />
+    <link rel="stylesheet" href="explorer.css" />
+    <link rel="stylesheet" href="viewer.css" />
+    <link rel="stylesheet" href="features.css" />
+    <script src="keys.js"></script>
+    <script src="guard.js"></script>
+    <script src="fluent-icons.js"></script>
+    <script src="dialogs.js"></script>
+    <script src="icons.js"></script>
+    <script src="settings.js"></script>
+    <script src="packs.js"></script>
+    <script src="tags.js"></script>
+    <script src="viewer-plus.js"></script>
+    <script src="ops.js"></script>
+    <script src="extras.js"></script>
+    <script src="props-view.js"></script>
+    <script src="faces-ui.js"></script>
+    <script src="image-editor.js"></script>
+    <script src="settings-pages.js"></script>
+    <script type="module" src="main.js" defer>
+    </script>
+    <script type="module" src="motion.js"></script>
+    <script type="module" src="shell.js"></script>
+    <script type="module" src="views.js"></script>
+  </head>
+  <body>
+    <div id="app">
+      <div id="tabBar" role="tablist" aria-label="Tabs" data-tauri-drag-region>
+        <button id="sidebarToggle" class="icon-btn title-btn nav-toggle" title="Toggle navigation pane" aria-label="Toggle navigation pane"><span data-icon="ui:sidebar"></span></button>
+        <div id="tabList" class="tab-list">
+        </div>
+        <button id="newTabBtn" class="tab-new" title="New tab (Ctrl+T)" aria-label="New tab"><span data-icon="ui:add"></span></button>
+        <div class="tab-spacer" data-tauri-drag-region>
+        </div>
+        <div class="window-controls" id="windowControls" aria-label="Window controls">
+          <button id="windowMinBtn" class="win-btn" title="Minimize" aria-label="Minimize">
+            <svg width="10" height="1" viewBox="0 0 10 1"><rect width="10" height="1" fill="currentColor"/></svg>
+          </button>
+          <button id="windowMaxBtn" class="win-btn" title="Maximize / Restore" aria-label="Maximize">
+            <svg id="winMaxIcon" width="10" height="10" viewBox="0 0 10 10"><rect width="8.5" height="8.5" x="0.75" y="0.75" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
+          </button>
+          <button id="windowCloseBtn" class="win-btn win-close" title="Close" aria-label="Close">
+            <svg width="10" height="10" viewBox="0 0 10 10"><line x1="1" y1="1" x2="9" y2="9" stroke="currentColor" stroke-width="1.2"/><line x1="9" y1="1" x2="1" y2="9" stroke="currentColor" stroke-width="1.2"/></svg>
+          </button>
+        </div>
+      </div>
+      <header id="topbar" role="banner">
+        <div class="nav-cluster">
+          <button id="backBtn" class="icon-btn" title="Back (Alt+Left)" aria-label="Back"><span data-icon="ui:back"></span></button>
+          <button id="forwardBtn" class="icon-btn" title="Forward (Alt+Right)" aria-label="Forward"><span data-icon="ui:forward"></span></button>
+          <button id="upBtn" class="icon-btn" title="Up (Alt+Up)" aria-label="Up"><span data-icon="ui:up"></span></button>
+          <button id="refreshBtn" class="icon-btn" title="Refresh (F5)" aria-label="Refresh"><span data-icon="ui:refresh"></span></button>
+        </div>
+        <div class="omnibar">
+          <div class="breadcrumb-bar" id="breadcrumbBar" aria-label="Address">
+            <div id="breadcrumbView" class="breadcrumb-view">
+              <div class="crumb"><button data-path="">Home</button></div>
+            </div>
+            <input id="addressInput" class="address-input hidden" type="text" placeholder="Enter a path, e.g. C:\Users\You\Pictures" spellcheck="false" autocomplete="off" />
+            <button id="addressGo" class="icon-btn small hidden" title="Go" aria-label="Go"><span data-icon="ui:forward"></span></button>
+            <button id="addressEditBtn" class="icon-btn small" title="Edit address (Ctrl+L)" aria-label="Edit path"><span data-icon="ui:edit"></span></button>
+            <button id="addressCopyBtn" class="icon-btn small" title="Copy path" aria-label="Copy path"><span data-icon="ui:copyPath"></span></button>
+          </div>
+        </div>
+        <label class="search-wrap" for="searchInput">
+          <span class="search-icon" data-icon="ui:search"></span>
+          <input id="searchInput" type="search" placeholder="Search" autocomplete="off" spellcheck="false" />
+          <span id="searchMeta" class="search-meta"></span>
+          <button id="searchClear" class="search-clear" aria-label="Clear search"><span data-icon="ui:close"></span></button>
+        </label>
+        <div class="top-right">
+          <button id="opsBtn" class="icon-btn ops-btn" title="File operations" aria-label="File operations" aria-haspopup="dialog" aria-expanded="false">
+            <svg class="ops-ring" viewBox="0 0 36 36" aria-hidden="true"><circle class="ops-ring-track" cx="18" cy="18" r="15"/><circle class="ops-ring-fill" cx="18" cy="18" r="15"/></svg>
+            <span class="ops-glyph" data-icon="ui:operations"></span>
+            <span id="opsBadge" class="ops-badge" hidden>0</span>
+          </button>
+        </div>
+      </header>
+      <div id="layout">
+        <nav id="sidebar" aria-label="Navigation">
+          <div class="sidebar-scroll">
+            <button class="nav-item nav-top active" data-nav="home"><span class="ico" data-icon="place:home"></span><span class="lbl">Home</span><span class="count" id="homeCount">-</span></button>
+            <button class="nav-item nav-top" data-nav="recent" title="Files you opened recently"><span class="ico" data-icon="place:recent"></span><span class="lbl">Recent</span></button>
+
+            <div class="nav-section" data-section="pinned">
+              <button class="nav-title" data-toggle-section="pinned"><span class="chev" data-icon="ui:chevronDown"></span><span class="ico" data-icon="place:pin"></span><span class="lbl">Pinned</span></button>
+              <div class="nav-children">
+                <button class="nav-item" data-pinned="desktop"><span class="ico" data-icon="place:desktop"></span><span class="lbl">Desktop</span></button>
+                <button class="nav-item" data-pinned="downloads"><span class="ico" data-icon="place:downloads"></span><span class="lbl">Downloads</span></button>
+                <button class="nav-item" data-pinned="documents"><span class="ico" data-icon="place:documents"></span><span class="lbl">Documents</span></button>
+                <button class="nav-item" data-pinned="pictures"><span class="ico" data-icon="place:pictures"></span><span class="lbl">Pictures</span></button>
+                <button class="nav-item" data-pinned="music"><span class="ico" data-icon="place:music"></span><span class="lbl">Music</span></button>
+                <button class="nav-item" data-pinned="videos"><span class="ico" data-icon="place:videos"></span><span class="lbl">Videos</span></button>
+                <button class="nav-item" data-pinned="recycle"><span class="ico" data-icon="place:recycle"></span><span class="lbl">Recycle Bin</span></button>
+              </div>
+            </div>
+
+            <div class="nav-section" data-section="drives">
+              <button class="nav-title" data-toggle-section="drives"><span class="chev" data-icon="ui:chevronDown"></span><span class="ico pi-drive-title" data-icon="ui:details"></span><span class="lbl">Drives</span></button>
+              <div class="nav-children">
+                <div id="drivesList" class="drives-list">
+                  <div class="loading"><span class="spinner"></span> Loading drives…</div>
+                </div>
+                <div id="storageBar" class="storage-bar hidden">
+                  <div id="storageFill" class="storage-fill" style="width:0%"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="nav-section" data-section="media">
+              <button class="nav-title" data-toggle-section="media"><span class="chev" data-icon="ui:chevronDown"></span><span class="ico" data-icon="place:media"></span><span class="lbl">Media</span></button>
+              <div class="nav-children">
+                <button class="nav-item" data-nav="media"><span class="ico" data-icon="place:pictures"></span><span class="lbl">Gallery</span></button>
+                <button class="nav-item" data-nav="people"><span class="ico" data-icon="place:people"></span><span class="lbl">People</span></button>
+                <button class="nav-item" data-nav="devices"><span class="ico" data-icon="place:devices"></span><span class="lbl">Devices</span></button>
+              </div>
+            </div>
+
+            <div class="nav-section" data-section="network">
+              <button class="nav-title" data-toggle-section="network"><span class="chev" data-icon="ui:chevronDown"></span><span class="ico" data-icon="place:network"></span><span class="lbl">Network</span></button>
+              <div class="nav-children">
+                <button class="nav-item" data-nav="network"><span class="ico" data-icon="place:network"></span><span class="lbl">All network locations</span></button>
+                <div id="netList" class="nav-dyn"></div>
+              </div>
+            </div>
+
+            <div class="nav-section" data-section="tags">
+              <button class="nav-title" data-toggle-section="tags"><span class="chev" data-icon="ui:chevronDown"></span><span class="ico" data-icon="place:tags"></span><span class="lbl">Tags</span></button>
+              <div class="nav-children">
+                <div id="userTagsList" class="nav-dyn"></div>
+                <button class="nav-item nav-sub" data-open-settings="tags"><span class="ico" data-icon="ui:edit"></span><span class="lbl">Manage tags</span></button>
+              </div>
+            </div>
+
+            <div class="nav-section" data-section="categories">
+              <button class="nav-title" data-toggle-section="categories"><span class="chev" data-icon="ui:chevronDown"></span><span class="ico" data-icon="ui:filter"></span><span class="lbl">Categories</span></button>
+              <div class="nav-children">
+                <button class="nav-item" data-nav="cat-images"><span class="ico tag-dot" style="--dot:#0078d4"></span><span class="lbl">Images</span></button>
+                <button class="nav-item" data-nav="cat-videos"><span class="ico tag-dot" style="--dot:#8764b8"></span><span class="lbl">Videos</span></button>
+                <button class="nav-item" data-nav="docs"><span class="ico tag-dot" style="--dot:#107c10"></span><span class="lbl">Documents</span></button>
+                <button class="nav-item" data-nav="archives"><span class="ico tag-dot" style="--dot:#ca5010"></span><span class="lbl">Archives</span></button>
+              </div>
+            </div>
+          </div>
+          <div class="sidebar-foot">
+            <button class="nav-item" data-open-settings><span class="ico" data-icon="ui:settings"></span><span class="lbl">Settings</span></button>
+            <div id="sidebarStatus" class="pf-debug">Ready • <span id="driveCount">-</span> drives</div>
+            <div class="pf-offscreen" aria-hidden="true">
+              <select id="themeSelect" class="theme-select" tabindex="-1">
+                <option value="fluent-dark">Fluent Dark</option>
+                <option value="fluent-light">Fluent Light</option>
+                <option value="material-dark">Material Dark</option>
+                <option value="material-light">Material Light</option>
+              </select>
+            </div>
+          </div>
+        </nav>
+        <div id="sidebarResizer" class="resizer-v" title="Drag to resize"></div>
+        <div id="overlay" class="overlay"></div>
+        <main id="main">
+          <div class="toolbar" role="toolbar" aria-label="Commands">
+            <div class="left">
+              <button id="newBtn" class="tbtn cmd-new" title="Create a new item" aria-haspopup="menu"><span data-icon="ui:addCircle"></span><span class="lbl-always">New</span><span class="dd" data-icon="ui:chevronDown"></span></button>
+              <span class="cmd-sep"></span>
+              <button id="cutBtn" class="icon-btn cmd" title="Cut (Ctrl+X)"><span data-icon="ui:cut"></span><span class="lbl">Cut</span></button>
+              <button id="copyBtn" class="icon-btn cmd" title="Copy (Ctrl+C)"><span data-icon="ui:copy"></span><span class="lbl">Copy</span></button>
+              <button id="pasteBtn" class="icon-btn cmd" title="Paste (Ctrl+V)"><span data-icon="ui:paste"></span><span class="lbl">Paste</span></button>
+              <button id="renameBtn" class="icon-btn cmd" title="Rename (F2)"><span data-icon="ui:rename"></span><span class="lbl">Rename</span></button>
+              <button id="shareBtn" class="icon-btn cmd" title="Share"><span data-icon="ui:share"></span><span class="lbl">Share</span></button>
+              <button id="deleteBtn" class="icon-btn cmd" title="Delete (Del)"><span data-icon="ui:delete"></span><span class="lbl">Delete</span></button>
+              <button id="propertiesBtn" class="icon-btn cmd" title="Properties (Alt+Enter)"><span data-icon="ui:properties"></span><span class="lbl">Properties</span></button>
+              <span id="pathLabel" class="pill pf-info" title="Current path">-</span>
+              <span id="itemCount" class="pill pf-info"> - items</span>
+              <span id="selectionCount" class="pill pf-info hidden">0 selected</span>
+            </div>
+            <div class="right">
+              <button id="selectAllBtn" class="icon-btn cmd pf-extra" title="Select all (Ctrl+A)"><span data-icon="ui:selectAll"></span><span class="lbl">Select all</span></button>
+              <button id="newFolderBtn" class="icon-btn cmd pf-extra" title="New folder"><span data-icon="ui:newFolder"></span><span class="lbl">New folder</span></button>
+              <button id="splitViewBtn" class="icon-btn cmd pf-extra" title="Split view"><span data-icon="ui:split"></span></button>
+              <button id="filterBtn" class="icon-btn cmd" title="Filter"><span data-icon="ui:filter"></span></button>
+              <label class="cmd-select" title="Group by"><span data-icon="ui:group"></span>
+                <select id="groupSelect" class="sort-select" aria-label="Group by">
+                  <option value="none">None</option>
+                  <option value="date">Date</option>
+                  <option value="type">Type</option>
+                  <option value="size">Size</option>
+                </select>
+              </label>
+              <label class="cmd-select" title="Sort by"><span data-icon="ui:sort"></span>
+                <select id="sortSelect" class="sort-select" aria-label="Sort by">
+                  <option value="name-asc">Name ↑</option>
+                  <option value="name-desc">Name ↓</option>
+                  <option value="date-desc">Newest</option>
+                  <option value="date-asc">Oldest</option>
+                  <option value="type-asc">Type ↑</option>
+                  <option value="type-desc">Type ↓</option>
+                  <option value="size-desc">Largest</option>
+                  <option value="size-asc">Smallest</option>
+                </select>
+              </label>
+              <div class="view-toggle" role="group" aria-label="Layout">
+                <button id="viewListBtn" class="active" title="Details" aria-label="Details layout"><span data-icon="ui:list"></span></button>
+                <button id="viewGridBtn" title="Grid" aria-label="Grid layout"><span data-icon="ui:grid"></span></button>
+              </div>
+              <button id="detailsToggle" class="icon-btn cmd" title="Preview pane (Ctrl+Shift+D)" aria-label="Toggle preview pane" aria-pressed="false"><span data-icon="ui:pane"></span></button>
+              <span id="loadingLabel" class="hidden" style="display:inline-flex;align-items:center;gap:6px"><span class="spinner"></span></span>
+            </div>
+          </div>
+          <div id="searchHeader" class="search-header hidden">
+            <span>Search results for <strong id="searchQueryLabel"></strong></span>
+            <span id="searchStats" class="pill"></span>
+            <button id="clearSearchBtn" class="tbtn small">Clear</button>
+          </div>
+          <div class="file-header" id="fileHeader" role="row">
+            <span class="fh-check" role="columnheader"><span class="check" id="headerCheck" role="checkbox" aria-label="Select all" tabindex="0"></span></span>
+            <span class="fh-name" role="columnheader" data-sort="name">Name<span class="sort-ind"></span></span>
+            <span class="fh-tag" role="columnheader">File tag</span>
+            <span class="fh-date" role="columnheader" data-sort="date">Date modified<span class="sort-ind"></span></span>
+            <span class="fh-type" role="columnheader" data-sort="type">Type<span class="sort-ind"></span></span>
+            <span class="fh-size" role="columnheader" data-sort="size">Size<span class="sort-ind"></span></span>
+          </div>
+                              <div class="viewport-wrap" id="viewportWrap">
+                                <div id="fileViewport" tabindex="0" aria-label="File list">
+                                  <div id="fileSpacer">
+                                  </div>
+                                  <div id="fileContainer">
+                                  </div>
+                                </div>
+                                <div id="emptyState" class="empty hidden">
+                                  <div class="ico">📁</div>
+                                  <div>
+                                    <strong>Folder is empty</strong>
+                                    <br/>
+                                    <span style="color:var(--text-3)">No files to display</span>
+                                  </div>
+                                  <button class="load-more" style="margin-top:8px" data-act="new-folder">Create folder</button>
+                                </div>
+                                <div id="loadMoreWrap" class="hidden" style="padding:8px;display:flex;justify-content:center;background:var(--bg)">
+                                  <div id="loadMoreBtn" class="load-more-indicator" role="status" aria-label="Loading more" title="Loading more"><span class="lm-spin"></span></div>
+                                </div>
+                              </div>
+                              <section id="homeView" class="pf-view hidden" aria-label="Home"></section>
+                              <section id="galleryView" class="pf-view hidden" aria-label="Gallery"></section>
+                              <section id="devicesView" class="pf-view hidden" aria-label="Devices"></section>
+                              <section id="networkView" class="pf-view hidden" aria-label="Network"></section>
+                              <div id="mediaView" class="hidden" style="flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden">
+                                <div class="media-content" id="mediaContent">
+                                  <div id="peopleTab" data-panel="people">
+                                    <!-- Recognition state lives in Settings; only actionable review prompts surface here. -->
+                                    <div class="pf-offscreen" aria-hidden="true">
+                                      <span id="aiModelStats"></span>
+                                      <button id="aiResetModelBtn" tabindex="-1">Reset</button>
+                                    </div>
+                                    <div id="peopleAssist" class="fa-host" hidden></div>
+                                    <div class="group">
+                                      <div class="group-head" style="flex-wrap:wrap;gap:8px">
+                                        <span class="group-title">By Person</span>
+                                        <span id="peopleCount" class="group-count">-</span>
+                                        <input id="peopleFilter" type="search" placeholder="Filter people…" autocomplete="off" spellcheck="false" style="margin-left:auto;height:28px;padding:0 10px;border:1px solid var(--border);border-radius:999px;background:var(--bg-2);font-size:12px;min-width:140px;max-width:200px" />
+                                        <button id="aiReviewBtn" class="tbtn review-btn" style="height:28px" title="Answer a few quick questions so grouping gets better"><span data-icon="ui:person"></span> Review faces <span id="aiSuggestionBadge" class="ai-badge-num" style="display:none">0</span></button>
+                                        <button id="peopleRefreshBtn" class="tbtn" style="height:28px" title="Re-detect faces">⟳ Redetect</button>
+                                        <button id="fastScanToggleBtn" class="tbtn" style="height:28px" title="Toggle between Eco Mode (gentle low-CPU background scan) and Fast Scan (immediate full speed)">🌱 Eco Mode</button>
+                                      </div>
+                                      <div id="peopleGrid" class="group-grid">
+                                      </div>
+                                      <div id="peopleEmpty" class="empty hidden">
+                                        <div class="ico">👤</div>
+                                        <div>No faces detected - add photos with faces</div>
+                                      </div>
+                                      <div id="peopleMergeBar" class="people-merge-bar hidden" role="toolbar" aria-label="Merge people">
+                                        <span id="peopleMergeCount" class="pill">0 selected</span>
+                                        <span style="flex:1"></span>
+                                        <button id="peopleMergeBtn" class="tbtn small" style="background:var(--accent);color:#fff;border-color:var(--accent)">Merge 2 persons</button>
+                                        <button id="peopleMergeCancel" class="tbtn small">Cancel</button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div id="devicesTab" data-panel="devices" class="hidden">
+                                    <div class="group">
+                                      <div class="group-head">
+                                        <span class="group-title">By Drive / Volume</span>
+                                        <span id="devicesCount" class="group-count">-</span>
+                                      </div>
+                                      <div id="devicesGrid" class="group-grid">
+                                      </div>
+                                    </div>
+                                    <div class="group">
+                                      <div class="group-head">
+                                        <span class="group-title">By File Type / Camera Model</span>
+                                        <span class="group-count">metadata</span>
+                                      </div>
+                                      <div id="deviceMetaGrid" class="group-grid">
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+          <div class="statusbar">
+            <nav id="pathBar" class="pathbar" aria-label="Path"></nav>
+            <span id="statusText">Ready</span>
+            <span id="selectionInfo" class="hidden"></span>
+            <span class="sb-spacer"></span>
+            <span id="layoutInfo" class="pf-debug">List • No group</span>
+            <label class="status-check pf-debug" title="Show hidden items"><input type="checkbox" id="hiddenToggle"> Hidden</label>
+            <span id="zoomLabel" class="pf-debug" title="Reset zoom">100%</span>
+            <span id="statusRight" class="pf-debug">-</span>
+          </div>
+                              </main>
+                              <div id="detailsResizer" class="resizer-v hidden" title="Drag to resize details">
+                              </div>
+                              <aside id="detailsPane" class="hidden" aria-label="Details">
+                                <div class="details-head">
+                                  <strong>Details</strong>
+                                  <span id="detailsCount" class="pill" style="font-size:10px">-</span>
+                                  <button id="detailsClose" class="icon-btn small" title="Close details" aria-label="Close">✕</button>
+                                </div>
+                                <div class="details-tabs" role="tablist" aria-label="Details pane mode">
+                                  <button data-details-tab="preview" class="active" role="tab" aria-selected="true" title="Preview (Ctrl+P)">Preview</button>
+                                  <button data-details-tab="details" role="tab" aria-selected="false" title="Details (Ctrl+I)">Details</button>
+                                </div>
+                                <div id="detailsContent" class="details-content">
+                                  <div id="detailsPreviewTab" data-details-panel="preview">
+                                    <div id="detailsPreview" class="details-preview">
+                                      <div class="empty" style="padding:16px">
+                                        <div class="ico">👁</div>
+                                        <div>Select a file to preview</div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div id="detailsPropsTab" data-details-panel="details" class="hidden">
+                                    <div id="detailsProps" class="details-props">
+                                    </div>
+                                  </div>
+                                </div>
+                              </aside>
+                            </div>
+                          </div>
+                          <div id="commandPalette" class="cmd-overlay hidden" role="dialog" aria-modal="true">
+                            <div class="cmd-backdrop">
+                            </div>
+                            <div class="cmd-box" role="listbox">
+                              <div class="cmd-input-wrap">
+                                <span>›</span>
+                                <input id="cmdInput" type="text" placeholder="Type a command or search… (Go to C:\, Search, Toggle theme, Rebuild index)" autocomplete="off" spellcheck="false" />
+                                <span class="hint" style="display:block">Esc to close</span>
+                              </div>
+                              <div id="cmdList" class="cmd-list">
+                              </div>
+                              <div class="cmd-hint">↑↓ navigate • Enter select • Esc close • Ctrl+Shift+P</div>
+                            </div>
+                          </div>
+                          <div id="contextMenu" class="ctx-menu hidden" role="menu">
+                          </div>
+                          <div id="viewerModal" class="hidden" role="dialog" aria-modal="true" aria-label="File viewer">
+                            <div class="viewer-backdrop" id="viewerBackdrop"></div>
+                            <div class="viewer-box" role="document">
+                              <div class="viewer-header">
+                                <span id="viewerTitle" class="viewer-title">Preview</span>
+                                <div class="viewer-actions">
+                                  <button id="viewerMovePerson" class="tbtn small hidden" title="Move this photo to another person">⇄ Move Person...</button>
+                                  <button id="viewerOpenExternal" class="tbtn small" title="Open with default app">Open externally</button>
+                                  <button id="viewerClose" class="icon-btn small" title="Close (Esc)" aria-label="Close viewer">✕</button>
+                                </div>
+                              </div>
+                              <div id="viewerContent" class="viewer-content"></div>
+                              <div id="viewerMeta" class="viewer-meta"></div>
+                            </div>
+                          </div>
+                          <!-- Face Recognition Active Learning Modal -->
+                          <div id="faceSuggestionModal" class="hidden" role="dialog" aria-modal="true" aria-label="Improve Face Recognition">
+                            <div class="viewer-backdrop" id="faceSuggestionBackdrop"></div>
+                            <div class="face-modal-box" role="document">
+                              <div class="face-modal-header">
+                                <div class="face-modal-title">
+                                  <span class="sparkle-icon">✨</span>
+                                  <strong>Improve Facial Recognition</strong>
+                                  <span id="sugProgressPill" class="pill" style="font-size:11px">1 of 1</span>
+                                </div>
+                                <button id="closeFaceModal" class="icon-btn small" title="Close (Esc)">✕</button>
+                              </div>
+                              <div class="face-modal-body">
+                                <div class="face-card-preview">
+                                  <div class="face-crop-wrap">
+                                    <img id="sugFaceThumb" src="" alt="Face crop" class="face-crop-img" />
+                                    <div id="sugConfidenceBadge" class="sug-conf-badge">84% Match</div>
+                                  </div>
+                                  <div class="face-context-info">
+                                    <div id="sugPrompt" class="sug-prompt">Does this photo contain <strong>Alice</strong>?</div>
+                                    <div id="sugReason" class="sug-reason">High facial similarity to learned profile</div>
+                                    <div id="sugFilePill" class="file-path-pill" title="File location">-</div>
+                                  </div>
+                                </div>
+
+                                <div class="face-label-box hidden" id="faceLabelBox">
+                                  <label for="sugLabelInput">Assign or create person:</label>
+                                  <div class="label-input-row">
+                                    <input id="sugLabelInput" type="text" placeholder="Type person's name..." maxlength="48" list="existingPersonsList" />
+                                    <datalist id="existingPersonsList"></datalist>
+                                    <button id="sugApplyLabelBtn" class="tbtn primary">Assign Name</button>
+                                  </div>
+                                </div>
+
+                                <div class="face-action-grid">
+                                  <button id="sugConfirmBtn" class="tbtn primary action-btn" title="Confirm identification (Y)">
+                                    <span class="btn-ico">✓</span> Yes, Confirm
+                                  </button>
+                                  <button id="sugChangeBtn" class="tbtn action-btn" title="Different person (N)">
+                                    <span class="btn-ico">✎</span> Someone Else
+                                  </button>
+                                  <button id="sugNotFaceBtn" class="tbtn action-btn danger-btn" title="Train detector to ignore this artifact (X)">
+                                    <span class="btn-ico">🚫</span> Not a Face
+                                  </button>
+                                  <button id="sugSkipBtn" class="tbtn action-btn" title="Skip this suggestion">
+                                    Skip →
+                                  </button>
+                                </div>
+                              </div>
+                              <div class="face-modal-footer">
+                                <span class="shortcut-tip"><kbd>Y</kbd> Confirm · <kbd>N</kbd> Someone Else · <kbd>X</kbd> Not Face · <kbd>Esc</kbd> Close</span>
+                                <span id="modelFeedbackToast" class="model-feedback-toast hidden">Model updated! +1 prototype learned</span>
+                              </div>
+                            </div>
+                          </div>
+                           <!-- Explorer Reassignment Action Bar (shown when viewing a person's photos and photos are selected) -->
+                           <div id="personPhotosActionBar" class="person-photos-action-bar hidden" role="toolbar" aria-label="Person photos actions">
+                             <span id="personActionCount" class="action-text">0 photos selected</span>
+                             <button id="moveSelectedPhotosBtn" class="tbtn primary small" title="Move selected photo(s) to another person or split to new person">⇄ Move to Person...</button>
+                             <button id="clearPersonSelectionBtn" class="tbtn small" title="Clear selection">Clear</button>
+                           </div>
+
+                           <!-- Move Photos Modal -->
+                           <div id="movePhotosModal" class="hidden" role="dialog" aria-modal="true" aria-label="Move Photos to Person">
+                             <div class="viewer-backdrop" id="movePhotosBackdrop"></div>
+                             <div class="face-modal-box" role="document" style="max-width:440px">
+                               <div class="face-modal-header">
+                                 <div class="face-modal-title">
+                                   <span>⇄</span>
+                                   <strong>Move Photos to Person</strong>
+                                 </div>
+                                 <button id="closeMovePhotosModal" class="icon-btn small" title="Close (Esc)">✕</button>
+                               </div>
+                               <div class="face-modal-body" style="padding:16px;display:flex;flex-direction:column;gap:14px">
+                                 <div id="movePhotosSummary" style="font-size:13px;color:var(--text-2)">
+                                   Move selected photos to another person:
+                                 </div>
+                                 <div>
+                                   <label for="moveTargetPersonSelect" style="font-size:12px;font-weight:600;display:block;margin-bottom:6px">Select existing person:</label>
+                                   <select id="moveTargetPersonSelect" style="width:100%;height:34px;padding:0 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg-2);color:var(--text-1);font-size:13px">
+                                     <option value=""> - Select an existing person - </option>
+                                   </select>
+                                 </div>
+                                 <div style="display:flex;align-items:center;gap:8px;color:var(--text-3);font-size:11px">
+                                   <div style="flex:1;height:1px;background:var(--border)"></div>
+                                   <span>OR CREATE NEW PERSON</span>
+                                   <div style="flex:1;height:1px;background:var(--border)"></div>
+                                 </div>
+                                 <div>
+                                   <label for="moveTargetNewNameInput" style="font-size:12px;font-weight:600;display:block;margin-bottom:6px">New Person Name:</label>
+                                   <input id="moveTargetNewNameInput" type="text" placeholder="e.g. Grandma, Uncle Joe, Charlie..." maxlength="48" style="width:100%;height:34px;padding:0 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg-2);color:var(--text-1);font-size:13px;box-sizing:border-box" />
+                                 </div>
+                                 <div style="font-size:11px;color:var(--text-3);line-height:1.4">
+                                   💡 Moving establishes a machine-learning rejection constraint on the source person, preventing the algorithm from misclassifying this person in the future.
+                                 </div>
+                                </div>
+                               <div class="face-modal-footer" style="padding:12px 16px;display:flex;justify-content:flex-end;gap:8px">
+                                 <button id="cancelMovePhotosBtn" class="tbtn">Cancel</button>
+                                 <button id="confirmMovePhotosBtn" class="tbtn primary">Move Photo(s)</button>
+                               </div>
+                             </div>
+                           </div>
+
+                          <div id="opsPanel" class="ops-panel" role="dialog" aria-label="File operations" hidden>
+                            <div class="ops-head">
+                              <strong>File operations</strong>
+                              <span class="ops-head-sub" id="opsSummary"></span>
+                              <button class="tbtn small" id="opsClear" title="Remove finished operations">Clear finished</button>
+                            </div>
+                            <div class="ops-list" id="opsList"></div>
+                          </div>
+                          <div id="toast" role="status" aria-live="polite">
+                          </div>
+                        </body>
+                      </html>

@@ -1,0 +1,114 @@
+# Builds PiFiles for Windows, macOS and Linux when a version tag is pushed, signs the updater
+# artifacts and publishes a GitHub Release with `latest.json`, which the in-app updater reads.
+#
+#   git tag v0.2.0 && git push origin v0.2.0          → stable release (marked "latest")
+#   git tag v0.2.0-beta.1 && git push origin v0.2.0-beta.1 → prerelease, also copied to the
+#                                                       rolling "beta" release for the beta channel
+#
+# Required repository secrets (Settings › Secrets and variables › Actions):
+#   TAURI_SIGNING_PRIVATE_KEY           contents of ~/.tauri/pifiles-updater.key
+#   TAURI_SIGNING_PRIVATE_KEY_PASSWORD  its password (empty if generated without one)
+# Optional (Windows code signing, removes SmartScreen warnings) — see docs/RELEASING.md.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows-latest
+            args: ""
+          - platform: macos-latest
+            args: "--target universal-apple-darwin"
+          - platform: ubuntu-22.04
+            args: ""
+    runs-on: ${{ matrix.platform }}
+    # Signing secrets live in the protected "release" environment: a run only gets them after a
+    # maintainer approves it, and only for v* tags (see docs/GITHUB-SETUP.md).
+    environment: release
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Linux build dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - uses: dtolnay/rust-toolchain@7e38f4b43b4db5c8dd498af069a4f6196df1d067 # master, toolchain: stable
+        with:
+          toolchain: stable
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+        with:
+          workspaces: "./src-tauri -> target"
+
+      - name: Fetch FFmpeg (Windows)
+        if: matrix.platform == 'windows-latest'
+        shell: pwsh
+        run: ./scripts/fetch-ffmpeg.ps1
+
+      - name: Install Tauri CLI
+        run: cargo install tauri-cli --version "^2" --locked
+
+      - uses: tauri-apps/tauri-action@84b9d35b5fc46c1e45415bdb6144030364f7ebc5 # v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          PIFILES_DISTRIBUTION: github
+        with:
+          tauriScript: cargo tauri
+          tagName: ${{ github.ref_name }}
+          releaseName: "PiFiles ${{ github.ref_name }}"
+          releaseBody: "See the changelog below. Existing installs update themselves from Settings › Updates."
+          releaseDraft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          includeUpdaterJson: true
+          updaterJsonPreferNsis: true
+          args: ${{ matrix.args }}
+
+  # Keeps a rolling "beta" release whose latest.json points at the newest prerelease, so the
+  # Beta update channel (releases/download/beta/latest.json) always finds it.
+  beta-channel:
+    needs: build
+    if: contains(github.ref_name, '-')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Copy latest.json to the rolling beta release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release download "$TAG" -R "$REPO" -p latest.json
+          gh release view beta -R "$REPO" >/dev/null 2>&1 || gh release create beta -R "$REPO" --prerelease --title "Beta channel" --notes "Rolling pointer for the in-app Beta update channel. Do not delete."
+          gh release upload beta latest.json -R "$REPO" --clobber
+
+  # Opens a PR on microsoft/winget-pkgs for every stable release (after the first manual
+  # submission has been merged). Needs a classic PAT with public_repo scope: WINGET_TOKEN.
+  winget:
+    needs: build
+    if: ${{ !contains(github.ref_name, '-') }}
+    runs-on: windows-latest
+    steps:
+      - uses: vedantmgoyal9/winget-releaser@4ffc7888bffd451b357355dc214d43bb9f23917e # v2
+        with:
+          identifier: SolanumTech.PiFiles
+          installers-regex: '_x64-setup\.exe$'
+          release-tag: ${{ github.ref_name }}
+          token: ${{ secrets.WINGET_TOKEN }}

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-media-stream"
+description = "Enables the media_stream command without any pre-configured scope."
+commands.allow = ["media_stream"]
+
+[[permission]]
+identifier = "deny-media-stream"
+description = "Denies the media_stream command without any pre-configured scope."
+commands.deny = ["media_stream"]

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-properties-window-paths"
+description = "Enables the properties_window_paths command without any pre-configured scope."
+commands.allow = ["properties_window_paths"]
+
+[[permission]]
+identifier = "deny-properties-window-paths"
+description = "Denies the properties_window_paths command without any pre-configured scope."
+commands.deny = ["properties_window_paths"]

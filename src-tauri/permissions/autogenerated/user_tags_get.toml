@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-user-tags-get"
+description = "Enables the user_tags_get command without any pre-configured scope."
+commands.allow = ["user_tags_get"]
+
+[[permission]]
+identifier = "deny-user-tags-get"
+description = "Denies the user_tags_get command without any pre-configured scope."
+commands.deny = ["user_tags_get"]

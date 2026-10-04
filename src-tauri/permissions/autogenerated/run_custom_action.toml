@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-run-custom-action"
+description = "Enables the run_custom_action command without any pre-configured scope."
+commands.allow = ["run_custom_action"]
+
+[[permission]]
+identifier = "deny-run-custom-action"
+description = "Denies the run_custom_action command without any pre-configured scope."
+commands.deny = ["run_custom_action"]

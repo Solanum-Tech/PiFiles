@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-computer-name"
+description = "Enables the computer_name command without any pre-configured scope."
+commands.allow = ["computer_name"]
+
+[[permission]]
+identifier = "deny-computer-name"
+description = "Denies the computer_name command without any pre-configured scope."
+commands.deny = ["computer_name"]

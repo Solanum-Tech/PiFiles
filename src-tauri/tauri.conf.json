@@ -10,6 +10,7 @@
   },
   "app": {
     "withGlobalTauri": true,
+    "macOSPrivateApi": true,
     "windows": [
       {
         "title": "PiFiles",
@@ -17,14 +18,55 @@
         "height": 800,
         "minWidth": 900,
         "minHeight": 600,
-        "decorations": true
+        "decorations": false,
+        "maximized": true,
+        "transparent": true
       }
     ],
     "security": {
-      "csp": null,
+      "csp": {
+        "default-src": "'self'",
+        "script-src": "'self'",
+        "style-src": "'self' 'unsafe-inline'",
+        "img-src": "'self' asset: http://asset.localhost data: blob:",
+        "media-src": "'self' asset: http://asset.localhost blob:",
+        "font-src": "'self' data:",
+        "connect-src": "ipc: http://ipc.localhost 'self' asset: http://asset.localhost",
+        "frame-src": "asset: http://asset.localhost",
+        "object-src": "'none'",
+        "base-uri": "'none'",
+        "form-action": "'none'",
+        "worker-src": "'self' blob:"
+      },
       "assetProtocol": {
         "enable": true,
-        "scope": ["**"]
+        "scope": {
+          "allow": [
+            "**"
+          ],
+          "deny": [
+            "$HOME/.ssh/**",
+            "$HOME/.gnupg/**",
+            "$HOME/.aws/**",
+            "$HOME/.azure/**",
+            "$HOME/.kube/**",
+            "$HOME/.tauri/**",
+            "$HOME/.docker/config.json",
+            "$HOME/.git-credentials",
+            "$HOME/.netrc",
+            "$LOCALDATA/Google/Chrome/User Data/**/Login Data*",
+            "$LOCALDATA/Google/Chrome/User Data/**/Cookies*",
+            "$LOCALDATA/Microsoft/Edge/User Data/**/Login Data*",
+            "$LOCALDATA/Microsoft/Edge/User Data/**/Cookies*",
+            "$APPDATA/Mozilla/Firefox/Profiles/**/logins.json",
+            "$APPDATA/Mozilla/Firefox/Profiles/**/key4.db",
+            "$APPDATA/Mozilla/Firefox/Profiles/**/cookies.sqlite",
+            "$LOCALDATA/Microsoft/Credentials/**",
+            "$APPDATA/Microsoft/Credentials/**",
+            "$APPDATA/Microsoft/Protect/**",
+            "C:/Windows/System32/config/**"
+          ]
+        }
       }
     }
   },
@@ -37,6 +79,30 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "resources": {
+      "ffmpeg/*": "ffmpeg/"
+    },
+    "createUpdaterArtifacts": true,
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser"
+      }
+    },
+    "publisher": "Solanum Tech",
+    "homepage": "https://github.com/Solanum-Tech/PiFiles",
+    "shortDescription": "File manager for photographers",
+    "category": "Photography"
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IENCMEI0OTFENjRCNjc0QjcKUldTM2RMWmtIVWtMeS9mVGF6ZGU2TUFIR2dXWS9zcmVuWG9wM0dyQmRXckVHcVQ0TGhDQStvT2QK",
+      "endpoints": [
+        "https://github.com/Solanum-Tech/PiFiles/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
   }
 }

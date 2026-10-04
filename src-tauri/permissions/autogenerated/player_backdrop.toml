@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-player-backdrop"
+description = "Enables the player_backdrop command without any pre-configured scope."
+commands.allow = ["player_backdrop"]
+
+[[permission]]
+identifier = "deny-player-backdrop"
+description = "Denies the player_backdrop command without any pre-configured scope."
+commands.deny = ["player_backdrop"]

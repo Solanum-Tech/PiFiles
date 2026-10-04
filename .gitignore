@@ -1,1 +1,41 @@
 /target
+node_modules/
+# FFmpeg runtime (~150 MB) - fetched by scripts/fetch-ffmpeg.ps1
+src-tauri/ffmpeg/*.exe
+src-tauri/ffmpeg/*.dll
+
+# Markdown: only the README is published (progress notes, docs and other .md files stay local).
+# GitHub's own configuration (.github: PR template, security policy) is kept.
+*.md
+!/README.md
+!/.github/**/*.md
+
+# Editor settings
+.vscode/
+.idea/
+*.code-workspace
+
+# AI assistant files and settings
+.claude/
+CLAUDE.md
+CLAUDE.local.md
+AGENTS.md
+GEMINI.md
+.cursor/
+.cursorrules
+.cursorignore
+.windsurf/
+.windsurfrules
+.continue/
+.aider*
+.codeium/
+.copilot/
+.github/copilot-instructions.md
+.github/instructions/
+.github/prompts/
+.gemini/
+.codex/
+.roo/
+.clinerules
+.kiro/
+.amazonq/

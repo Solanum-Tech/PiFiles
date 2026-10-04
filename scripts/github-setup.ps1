@@ -25,9 +25,13 @@ function Api([string]$Method, [string]$Path, $Body) {
     $ghArgs += @("--input", $f)
   }
   if ($DryRun) { Write-Host "[dry-run] gh $($ghArgs -join ' ')"; return $null }
-  $out = & gh @args 2>&1
+  # gh's stderr must not abort the script (PowerShell 5.1 turns it into errors); the exit code decides.
+  $prev = $ErrorActionPreference; $ErrorActionPreference = "Continue"
+  try { $out = & gh @ghArgs 2>&1 | ForEach-Object { "$_" } } finally { $ErrorActionPreference = $prev }
   if ($LASTEXITCODE -ne 0) { Write-Warning "$Method $Path failed: $out"; return $null }
-  if ($out) { return ($out | Out-String | ConvertFrom-Json -ErrorAction SilentlyContinue) }
+  $text = ($out | Out-String).Trim()
+  if (-not $text) { return $null } # e.g. 204 No Content
+  try { return ($text | ConvertFrom-Json) } catch { return $text }
 }
 
 Write-Host "== Repository settings"

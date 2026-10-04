@@ -861,7 +861,15 @@
     function streamFailed(e) {
       setLoading(false);
       if (host.querySelector(".pv-player .pv-error")) return;
-      host.querySelector(".pv-player").insertAdjacentHTML("beforeend", failure("This file can't be played", String(e?.message || e || "The stream stopped unexpectedly."), file));
+      // The message can contain file paths or FFmpeg output: it is set as text, never as HTML.
+      const box = document.createElement("div");
+      box.innerHTML = failure("This file can't be played", "", file);
+      const panel = box.firstElementChild;
+      const detail = document.createElement("div");
+      detail.className = "pv-state-detail";
+      detail.textContent = String(e?.message || e || "The stream stopped unexpectedly.");
+      panel.querySelector(".pv-state-title")?.after(detail);
+      host.querySelector(".pv-player").appendChild(panel);
       wireExternal(host, file);
     }
     function startDirect() {

@@ -421,6 +421,10 @@
 
   function esc(s) { return String(s).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch])); }
 
+  // Only real colours reach HTML/CSS (values can come from an imported settings file).
+  const color = (c, d) => (typeof c === "string" && /^#[0-9a-f]{3}([0-9a-f]{3})?$/i.test(c) ? c : d);
+  const num = (n, d) => (Number.isFinite(Number(n)) ? Number(n) : d);
+
   function control(it) {
     const v = values[it.key];
     switch (it.type) {
@@ -433,14 +437,16 @@
       case "text":
         return `<input class="pf-text" type="text" value="${esc(v || "")}" data-set="${it.key}" spellcheck="false">`;
       case "range":
-        return `<div class="pf-range"><input type="range" min="${it.min}" max="${it.max}" value="${v}" data-set="${it.key}" data-num="1"><span>${v}%</span></div>`;
-      case "swatches":
-        return `<div class="pf-swatches"><button class="pf-sw auto ${v === "default" ? "on" : ""}" data-set="${it.key}" data-val="default" title="Theme default">A</button>` +
-          it.swatches.map(sw => `<button class="pf-sw ${v === sw ? "on" : ""}" style="--sw:${sw}" data-set="${it.key}" data-val="${sw}" title="${sw}"></button>`).join("") +
-          `<label class="pf-sw custom ${v !== "default" && !it.swatches.includes(v) ? "on" : ""}" title="Custom colour" style="--sw:${v !== "default" ? v : "#888"}"><input type="color" value="${v !== "default" ? v : "#0078d4"}" data-set="${it.key}"></label></div>`;
+        return `<div class="pf-range"><input type="range" min="${num(it.min, 0)}" max="${num(it.max, 100)}" value="${num(v, 0)}" data-set="${esc(it.key)}" data-num="1"><span>${num(v, 0)}%</span></div>`;
+      case "swatches": {
+        const custom = v !== "default" ? color(v, null) : null;
+        return `<div class="pf-swatches"><button class="pf-sw auto ${v === "default" ? "on" : ""}" data-set="${esc(it.key)}" data-val="default" title="Theme default">A</button>` +
+          it.swatches.map(sw => color(sw, null)).filter(Boolean).map(sw => `<button class="pf-sw ${v === sw ? "on" : ""}" style="--sw:${sw}" data-set="${esc(it.key)}" data-val="${sw}" title="${sw}"></button>`).join("") +
+          `<label class="pf-sw custom ${custom && !it.swatches.includes(custom) ? "on" : ""}" title="Custom colour" style="--sw:${custom || "#888"}"><input type="color" value="${custom || "#0078d4"}" data-set="${esc(it.key)}"></label></div>`;
+      }
       case "tints":
         return `<div class="pf-swatches">` + [["none", null], ...Object.entries(TINTS)].map(([name, h]) =>
-          `<button class="pf-sw tint ${v === name ? "on" : ""}" style="--sw:${h == null ? "transparent" : `hsl(${h} 55% 42%)`}" data-set="${it.key}" data-val="${name}" title="${name}">${h == null ? "∅" : ""}</button>`).join("") + `</div>`;
+          `<button class="pf-sw tint ${v === name ? "on" : ""}" style="--sw:${h == null ? "transparent" : `hsl(${num(h, 0)} 55% 42%)`}" data-set="${esc(it.key)}" data-val="${esc(name)}" title="${esc(name)}">${h == null ? "∅" : ""}</button>`).join("") + `</div>`;
       case "action":
         return `<button class="pf-btn ${it.danger ? "danger" : ""}" data-action="${esc(it.title)}">${esc(it.label)}</button>`;
     }
@@ -598,7 +604,14 @@
     inp.onchange = async () => {
       try {
         const data = JSON.parse(await inp.files[0].text());
-        for (const k of Object.keys(DEFAULTS)) if (k in data) set(k, data[k]);
+        // Known settings only, and only with the same type as the default (a file can't put a
+        // string where a number, flag or colour belongs).
+        const sameType = (a, b) => (Array.isArray(a) ? Array.isArray(b) : a === null || typeof a !== "object" ? typeof a === typeof b : b !== null && typeof b === "object" && !Array.isArray(b));
+        for (const k of Object.keys(DEFAULTS)) {
+          if (!(k in data) || !sameType(DEFAULTS[k], data[k])) continue;
+          if (typeof data[k] === "string" && data[k].length > 2000) continue;
+          set(k, data[k]);
+        }
         window.toast?.("Settings imported");
       } catch { window.toast?.("That file isn't a PiFiles settings file"); }
     };

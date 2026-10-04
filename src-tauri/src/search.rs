@@ -1,5 +1,6 @@
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
+#[cfg(windows)]
 use std::path::Path;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::RwLock;

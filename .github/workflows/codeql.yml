@@ -14,6 +14,11 @@ on:
 permissions:
   contents: read
 
+# A newer push to the same PR/branch replaces the running scan (scheduled scans are never cancelled).
+concurrency:
+  group: codeql-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'schedule' }}
+
 jobs:
   analyze:
     name: Analyze (${{ matrix.language }})

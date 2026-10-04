@@ -49,15 +49,25 @@ jobs:
         shell: pwsh
         run: ./scripts/fetch-ffmpeg.ps1
 
+      # The prebuilt Tauri CLI from npm (package-lock.json) instead of compiling it with
+      # `cargo install` on every run (several minutes on Windows).
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+
       - name: Install Tauri CLI
-        run: cargo install tauri-cli --version "^2" --locked
+        run: npm ci --ignore-scripts
 
       - name: Build installers (no updater signing)
         shell: bash
-        working-directory: src-tauri
         env:
           PIFILES_DISTRIBUTION: github
-        run: cargo tauri build ${{ matrix.args }} --config '{"bundle":{"createUpdaterArtifacts":false}}'
+          # Test installers only: thin LTO and parallel codegen link many times faster than the
+          # size-optimised release profile. Official releases (release.yml) keep full LTO.
+          CARGO_PROFILE_RELEASE_LTO: thin
+          CARGO_PROFILE_RELEASE_CODEGEN_UNITS: "16"
+        run: npx tauri build ${{ matrix.args }} --config '{"bundle":{"createUpdaterArtifacts":false}}'
 
       - name: Upload installers
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

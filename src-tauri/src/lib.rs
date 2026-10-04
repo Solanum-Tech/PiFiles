@@ -521,11 +521,17 @@ fn mark_taskbar_fullscreen(hwnd: windows::Win32::Foundation::HWND, on: bool) {
     }
 }
 
-/// Fades a black cover in over the monitor (returns once it is opaque), hiding the window and
-/// page changes of a full-screen switch.
+/// Covers the monitor with a snapshot of the screen (returns once it is shown), hiding the window
+/// and page changes of a full-screen switch. Windows only; elsewhere it does nothing.
 #[tauri::command]
 async fn fs_cover(window: tauri::Window, ms: Option<u32>) {
+    #[cfg(windows)]
     let h = window.hwnd().map(|h| h.0 as isize).unwrap_or(0);
+    #[cfg(not(windows))]
+    let h = {
+        let _ = window;
+        0
+    };
     let ms = ms.unwrap_or(110).min(400);
     let _ = tauri::async_runtime::spawn_blocking(move || curtain::cover(h, ms)).await;
 }

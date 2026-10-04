@@ -25,9 +25,13 @@ function Api([string]$Method, [string]$Path, $Body) {
     $ghArgs += @("--input", $f)
   }
   if ($DryRun) { Write-Host "[dry-run] gh $($ghArgs -join ' ')"; return $null }
-  $out = & gh @args 2>&1
+  # gh's stderr must not abort the script (PowerShell 5.1 turns it into errors); the exit code decides.
+  $prev = $ErrorActionPreference; $ErrorActionPreference = "Continue"
+  try { $out = & gh @ghArgs 2>&1 | ForEach-Object { "$_" } } finally { $ErrorActionPreference = $prev }
   if ($LASTEXITCODE -ne 0) { Write-Warning "$Method $Path failed: $out"; return $null }
-  if ($out) { return ($out | Out-String | ConvertFrom-Json -ErrorAction SilentlyContinue) }
+  $text = ($out | Out-String).Trim()
+  if (-not $text) { return $null } # e.g. 204 No Content
+  try { return ($text | ConvertFrom-Json) } catch { return $text }
 }
 
 Write-Host "== Repository settings"
@@ -38,6 +42,7 @@ Api PATCH "repos/$Repo" @{
   allow_rebase_merge     = $false
   allow_auto_merge       = $true
   security_and_analysis  = @{
+    advanced_security               = @{ status = "enabled" } # free for public repos; required for CodeQL uploads
     secret_scanning                 = @{ status = "enabled" }
     secret_scanning_push_protection = @{ status = "enabled" }
     dependabot_security_updates     = @{ status = "enabled" }

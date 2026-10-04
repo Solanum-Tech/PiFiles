@@ -1,8 +1,10 @@
 [package]
 name = "pifiles"
 version = "0.1.0"
-description = "PiFiles — Lightweight File Explorer with NTFS fast search and media management"
-authors = ["you"]
+description = "PiFiles - fast, private file manager with instant search and media management"
+authors = ["Solanum Tech"]
+license = "GPL-3.0-only"
+repository = "https://github.com/Solanum-Tech/PiFiles"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

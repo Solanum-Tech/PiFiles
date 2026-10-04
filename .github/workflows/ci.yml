@@ -126,6 +126,12 @@ jobs:
           fail-on-severity: moderate
           comment-summary-in-pr: on-failure
           deny-licenses: AGPL-3.0, SSPL-1.0
+          # The licence rule protects what ships in PiFiles. winget-releaser (AGPL-3.0) is a CI
+          # action that only opens the winget-pkgs PR from release.yml; it is never built into or
+          # distributed with the app, so its licence doesn't reach PiFiles.
+          allow-dependencies-licenses: >-
+            pkg:githubactions/vedantmgoyal9/winget-releaser,
+            pkg:githubactions/vedantmgoyal9/winget-releaser@4ffc7888bffd451b357355dc214d43bb9f23917e
           # Accepted advisories (each one reviewed; remove it once the cause is gone):
           #  GHSA-wrw7-89jp-8q8g / RUSTSEC-2024-0429 - unsound glib::VariantStrIter in glib 0.18.
           #    Linux only, pulled in by Tauri itself (gtk/webkit2gtk 0.18); PiFiles never calls glib.

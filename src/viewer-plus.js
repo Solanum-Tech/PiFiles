@@ -8,6 +8,12 @@
   const toast = (m) => window.toast?.(m);
   const extOf = (name) => String(name || "").split(".").pop().toLowerCase();
   const lower = (s) => String(s || "").toLowerCase();
+  // Local media always goes through the asset protocol with the path percent-encoded (the same
+  // URL Tauri's convertFileSrc builds), so a raw path or other URL never becomes a media source.
+  const assetMediaUrl = (p) => {
+    const enc = encodeURIComponent(String(p));
+    return /Windows|Android/.test(navigator.userAgent) ? `http://asset.localhost/${enc}` : `asset://localhost/${enc}`;
+  };
 
   const VIDEO = new Set(["mp4", "m4v", "mkv", "webm", "mov", "avi", "wmv", "flv", "mpg", "mpeg", "ts", "m2ts", "mts", "3gp", "ogv", "vob", "divx", "rmvb", "asf"]);
   const AUDIO = new Set(["mp3", "m4a", "aac", "wav", "flac", "ogg", "oga", "opus", "wma", "ac3", "eac3", "dts", "ape", "alac", "aiff", "aif", "mka", "weba", "amr"]);
@@ -874,7 +880,7 @@
     }
     function startDirect() {
       streaming = false; offset = 0; setMode();
-      video.src = window.__assetUrl ? window.__assetUrl(file.path) : file.path;
+      video.src = assetMediaUrl(file.path);
       if (pref("autoplay", true)) video.play().catch(() => {});
     }
     function seekTo(t) {

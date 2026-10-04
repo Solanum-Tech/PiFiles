@@ -112,3 +112,6 @@ jobs:
           installers-regex: '_x64-setup\.exe$'
           release-tag: ${{ github.ref_name }}
           token: ${{ secrets.WINGET_TOKEN }}
+          # The token's owner, whose fork of microsoft/winget-pkgs the update PR comes from
+          # (default would be the repository owner, the Solanum-Tech organisation).
+          fork-user: SirilJoseph

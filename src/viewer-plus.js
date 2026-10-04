@@ -1168,7 +1168,9 @@
   /** Small, safe Markdown renderer: text is escaped first; only known constructs become tags. */
   function markdown(src) {
     const e = s => s.replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-    const safeUrl = u => /^(https?:|mailto:|#|\.{0,2}\/|[\w-]+\.)/i.test(u) && !/^\s*javascript:/i.test(u) ? u : "#";
+    // Allow-list: web links, mail, anchors, relative paths and bare domains. Any other scheme
+    // (script, data, file...) becomes "#". The preview frame is also sandboxed without scripts.
+    const safeUrl = u => /^(https?:|mailto:|#|\.{0,2}\/|[\w-]+\.)/i.test(u) ? u : "#";
     const inline = t => e(t)
       .replace(/`([^`]+)`/g, "<code>$1</code>")
       .replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, (m, a, u) => `<img alt="${a}" src="${safeUrl(u)}">`)

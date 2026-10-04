@@ -494,10 +494,7 @@ pub fn open(path: &Path, audio: Option<usize>, start: f64, mode: &str, hevc: boo
         .spawn(move || {
             let mut buf = vec![0u8; 256 * 1024];
             loop {
-                let n = match out.read(&mut buf) {
-                    Ok(n) => n,
-                    Err(_) => 0,
-                };
+                let n = out.read(&mut buf).unwrap_or_default(); // an error ends the stream like EOF
                 let (m, cv) = &*p2;
                 let mut p = m.lock().unwrap();
                 if n == 0 {

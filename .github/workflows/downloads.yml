@@ -1,0 +1,65 @@
+# Direct download links for the Windows installer, served by GitHub Pages.
+#
+# GitHub release links redirect to a temporary signed address, which stores such as the
+# Microsoft Store (EXE/MSI apps) reject. Pages serves files directly, at versioned addresses:
+#
+#   https://solanum-tech.github.io/PiFiles/download/<version>/PiFiles_<version>_x64-setup.exe
+#
+# Runs after every Release run and on demand (Actions > Downloads > Run workflow). The newest
+# three stable releases are kept, so the address a store currently uses stays valid while an
+# update is being certified. Requires Settings > Pages > Source: "GitHub Actions".
+name: Downloads
+
+on:
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Collect the Windows installers of the newest stable releases
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          mkdir -p site/download
+          tags=$(gh release list -R "$REPO" --exclude-drafts --exclude-pre-releases --limit 3 --json tagName --jq '.[].tagName')
+          if [ -z "$tags" ]; then echo "::error::No stable release found"; exit 1; fi
+          {
+            echo '<!doctype html><meta charset="utf-8"><title>PiFiles downloads</title>'
+            echo '<h1>PiFiles downloads</h1><ul>'
+          } > site/index.html
+          for tag in $tags; do
+            v="${tag#v}"
+            mkdir -p "site/download/$v"
+            gh release download "$tag" -R "$REPO" -p '*_x64-setup.exe' -D "site/download/$v"
+            f=$(ls "site/download/$v")
+            echo "<li><a href=\"download/$v/$f\">$f</a></li>" >> site/index.html
+            echo "$tag -> download/$v/$f"
+          done
+          echo '</ul><p>Also on <a href="https://github.com/Solanum-Tech/PiFiles/releases">GitHub Releases</a>.</p>' >> site/index.html
+
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: site
+
+      - id: deploy
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

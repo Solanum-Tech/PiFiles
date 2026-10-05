@@ -3628,7 +3628,7 @@ dependencies = [
  "unrar",
  "walkdir",
  "webview2-com",
- "windows 0.61.3",
+ "windows 0.62.2",
  "windows-collections 0.2.0",
  "windows-core 0.62.2",
  "windows-sys 0.61.2",

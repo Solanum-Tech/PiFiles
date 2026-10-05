@@ -35,7 +35,7 @@ sysinfo = "0.32"
 kamadak-exif = "0.5"
 image = { version = "0.24", default-features = false, features = ["jpeg", "png", "webp", "bmp", "gif"] }
 rustface = { version = "0.1.7", default-features = false }
-base64 = "0.22"
+base64 = "0.23"
 zip = { version = "2", features = ["deflate", "deflate64", "bzip2", "zstd", "lzma", "aes-crypto"] }
 # Viewer: archives (7z incl. AES, RAR via UnRAR, tar/gz/bz2/xz), spreadsheets, local video streaming.
 sevenz-rust2 = { version = "0.23", features = ["aes256"] }

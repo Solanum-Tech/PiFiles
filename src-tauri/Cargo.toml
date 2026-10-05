@@ -65,7 +65,7 @@ windows-collections = "0.2"
 # Locks the WebView2 down (no DevTools / browser menus / reload keys); same version Tauri uses.
 webview2-com = "0.39"
 # WebView2 COM interop must use the same windows-core as webview2-com / Tauri.
-windows-core = "0.62"
+windows-core = "0.100"
 
 [target.'cfg(not(windows))'.dependencies]
 trash = "5"

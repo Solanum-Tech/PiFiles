@@ -78,7 +78,7 @@ jobs:
           releaseBody: "See the changelog below. Existing installs update themselves from Settings › Updates."
           releaseDraft: false
           prerelease: ${{ contains(github.ref_name, '-') }}
-          includeUpdaterJson: true
+          uploadUpdaterJson: true # tauri-action v1 name (was includeUpdaterJson)
           updaterJsonPreferNsis: true
           args: ${{ matrix.args }}
 

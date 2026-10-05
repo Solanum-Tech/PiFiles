@@ -33,7 +33,7 @@ windows-sys = { version = "0.61", features = ["Win32_Storage_FileSystem", "Win32
 mime_guess = "2"
 sysinfo = "0.32"
 kamadak-exif = "0.5"
-image = { version = "0.24", default-features = false, features = ["jpeg", "png", "webp", "bmp", "gif"] }
+image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp", "bmp", "gif"] }
 rustface = { version = "0.1.7", default-features = false }
 base64 = "0.22"
 zip = { version = "2", features = ["deflate", "deflate64", "bzip2", "zstd", "lzma", "aes-crypto"] }

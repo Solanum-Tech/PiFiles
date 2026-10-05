@@ -24,7 +24,32 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Stops a release whose tag doesn't match the app version before anything is built or approved.
+  verify:
+    name: Tag matches the app version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Compare the tag with tauri.conf.json, package.json and Cargo.toml
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          if [ "$REF_TYPE" != "tag" ]; then echo "::error::Start a release by pushing a version tag (vX.Y.Z), not from a branch."; exit 1; fi
+          want="${TAG#v}"
+          conf=$(jq -r .version src-tauri/tauri.conf.json)
+          pkg=$(jq -r .version package.json)
+          crate=$(sed -n 's/^version = "\(.*\)"/\1/p' src-tauri/Cargo.toml | head -1)
+          echo "tag $TAG | tauri.conf.json $conf | package.json $pkg | Cargo.toml $crate"
+          for v in "$conf" "$pkg" "$crate"; do
+            if [ "$v" != "$want" ]; then
+              echo "::error::Tag $TAG doesn't match the app version (tauri.conf.json $conf, package.json $pkg, Cargo.toml $crate). Bump the version on dev, release it to main, then tag."
+              exit 1
+            fi
+          done
+
   build:
+    needs: verify
     strategy:
       fail-fast: false
       matrix:
@@ -62,8 +87,14 @@ jobs:
         shell: pwsh
         run: ./scripts/fetch-ffmpeg.ps1
 
+      # Prebuilt Tauri CLI from package-lock.json (compiling it with cargo install takes minutes).
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+
       - name: Install Tauri CLI
-        run: cargo install tauri-cli --version "^2" --locked
+        run: npm ci --ignore-scripts
 
       - uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # v1.0.0
         env:
@@ -72,7 +103,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
           PIFILES_DISTRIBUTION: github
         with:
-          tauriScript: cargo tauri
+          tauriScript: npx tauri
           tagName: ${{ github.ref_name }}
           releaseName: "PiFiles ${{ github.ref_name }}"
           releaseBody: "See the changelog below. Existing installs update themselves from Settings › Updates."
@@ -105,8 +136,14 @@ jobs:
     needs: build
     if: ${{ !contains(github.ref_name, '-') }}
     runs-on: windows-latest
+    env:
+      WINGET_TOKEN: ${{ secrets.WINGET_TOKEN }}
     steps:
-      - uses: vedantmgoyal9/winget-releaser@4ffc7888bffd451b357355dc214d43bb9f23917e # v2
+      - name: WINGET_TOKEN not set
+        if: env.WINGET_TOKEN == ''
+        run: echo "::notice::WINGET_TOKEN isn't set, so no winget update was opened. Add it (and do the first manual wingetcreate submission) to publish on winget."
+      - if: env.WINGET_TOKEN != ''
+        uses: vedantmgoyal9/winget-releaser@4ffc7888bffd451b357355dc214d43bb9f23917e # v2
         with:
           identifier: SolanumTech.PiFiles
           installers-regex: '_x64-setup\.exe$'
@@ -115,3 +152,50 @@ jobs:
           # The token's owner, whose fork of microsoft/winget-pkgs the update PR comes from
           # (default would be the repository owner, the Solanum-Tech organisation).
           fork-user: SirilJoseph
+
+  # Microsoft Store package: PiFiles built with the in-app updater off (the Store updates it),
+  # packaged as an unsigned MSIX (the Store signs it) and attached to the release, ready to upload
+  # in Partner Center. Skipped until the identity from Partner Center > Product identity is saved
+  # as repository variables: MSSTORE_IDENTITY_NAME, MSSTORE_PUBLISHER, MSSTORE_PUBLISHER_DISPLAY_NAME.
+  store-package:
+    name: Microsoft Store package (MSIX)
+    needs: build
+    if: ${{ vars.MSSTORE_PUBLISHER != '' && vars.MSSTORE_IDENTITY_NAME != '' }}
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: dtolnay/rust-toolchain@7e38f4b43b4db5c8dd498af069a4f6196df1d067 # master, toolchain: stable
+        with:
+          toolchain: stable
+      - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+        with:
+          workspaces: "./src-tauri -> target"
+          key: msstore
+      - name: Fetch FFmpeg
+        shell: pwsh
+        run: ./scripts/fetch-ffmpeg.ps1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install Tauri CLI
+        run: npm ci --ignore-scripts
+      - name: Build PiFiles for the Store (in-app updater off)
+        env:
+          PIFILES_DISTRIBUTION: msstore
+        run: npx tauri build --no-bundle
+      - name: Package the MSIX
+        shell: pwsh
+        env:
+          TAG: ${{ github.ref_name }}
+          IDENTITY_NAME: ${{ vars.MSSTORE_IDENTITY_NAME }}
+          PUBLISHER: ${{ vars.MSSTORE_PUBLISHER }}
+          PUBLISHER_NAME: ${{ vars.MSSTORE_PUBLISHER_DISPLAY_NAME || 'Solanum Tech' }}
+        run: ./scripts/package-msix.ps1 -Version $env:TAG -IdentityName $env:IDENTITY_NAME -Publisher $env:PUBLISHER -PublisherDisplayName $env:PUBLISHER_NAME
+      - name: Attach the MSIX to the release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
+        run: gh release upload $env:TAG (Get-ChildItem src-tauri/target/release/msix/*.msix).FullName -R $env:REPO --clobber

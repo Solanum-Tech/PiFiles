@@ -1,6 +1,6 @@
 [package]
 name = "pifiles"
-version = "0.1.0"
+version = "0.2.0"
 description = "PiFiles - fast, private file manager with instant search and media management"
 authors = ["Solanum Tech"]
 license = "GPL-3.0-only"

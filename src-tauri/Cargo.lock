@@ -2101,7 +2101,7 @@ dependencies = [
  "js-sys",
  "log",
  "wasm-bindgen",
- "windows-core 0.57.0",
+ "windows-core 0.62.2",
 ]
 
 [[package]]
@@ -3629,7 +3629,7 @@ dependencies = [
  "walkdir",
  "webview2-com",
  "windows 0.61.3",
- "windows-collections 0.2.0",
+ "windows-collections 0.3.2",
  "windows-core 0.62.2",
  "windows-sys 0.61.2",
  "xz2",

@@ -1,12 +1,18 @@
-# Continuous integration: runs on every pull request and every push to main/dev, plus weekly.
+# Continuous integration.
+#  - PRs into dev (day-to-day work): the quick essentials - front-end checks, Rust lints, tests
+#    and dependency review.
+#  - PRs into main, pushes to main, the weekly run and manual runs: everything, adding the
+#    macOS/Linux compile and cargo audit.
+#  - Merges into dev run nothing: the PR was already checked.
 # Branch protection only needs to require the final "CI passed" check, which succeeds only if
-# every job below succeeded (skipped jobs on push count as fine).
+# every job below succeeded or was skipped.
 name: CI
 
 on:
   pull_request:
-  push:
     branches: [main, dev]
+  push:
+    branches: [main]
   schedule:
     - cron: "17 4 * * 1" # weekly, so new advisories against unchanged code are still caught
   workflow_dispatch:
@@ -79,6 +85,7 @@ jobs:
 
   build-check:
     name: Compiles on ${{ matrix.os }}
+    if: github.base_ref != 'dev' # full check only on the way to main
     strategy:
       fail-fast: false
       matrix:
@@ -103,6 +110,7 @@ jobs:
 
   audit:
     name: Dependency vulnerabilities (cargo audit)
+    if: github.base_ref != 'dev' # dependency review covers new dependencies on dev PRs
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

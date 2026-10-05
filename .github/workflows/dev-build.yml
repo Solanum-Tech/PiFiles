@@ -1,13 +1,15 @@
-# Installers for every change: each push to main/dev (and each pull request, Windows only)
-# builds real installers and attaches them to the workflow run as downloadable artifacts, so
-# every change can be tried before it's released. These builds are not code-signed and don't
-# carry updater signatures; official releases come from release.yml (version tags).
+# Test installers (unsigned, no updater signatures; official releases come from release.yml):
+#  - PRs into main: Windows installer (a required check for main);
+#  - pushes to main: all three platforms, attached to the run as downloadable artifacts;
+#  - any branch on demand: Actions > Dev build > Run workflow (e.g. to try a dev change).
+# Day-to-day PRs into dev don't build installers.
 name: Dev build
 
 on:
   push:
-    branches: [main, dev]
+    branches: [main]
   pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:

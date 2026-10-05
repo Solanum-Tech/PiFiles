@@ -3,10 +3,13 @@
 # under Security > Code scanning and as annotations on pull requests.
 name: CodeQL
 
+# Runs where it matters: PRs into main, pushes to main, weekly (catches newly published query
+# rules against unchanged code) and on demand. Day-to-day PRs into dev skip it.
 on:
   pull_request:
+    branches: [main]
   push:
-    branches: [main, dev]
+    branches: [main]
   schedule:
     - cron: "29 3 * * 2"
   workflow_dispatch:

@@ -52,7 +52,7 @@ tauri-plugin-dialog = "2"
 # Spreadsheet editing that keeps the workbook's formatting.
 umya-spreadsheet = "3"
 # Previous versions: content-defined chunks, SHA-256 addressed, zstd compressed; folder watcher.
-zstd = "0.13"
+zstd = "0.14"
 sha2 = "0.10"
 notify = "8"
 # Face AI: pure-Rust ONNX inference (no ONNX Runtime DLL, fully offline).

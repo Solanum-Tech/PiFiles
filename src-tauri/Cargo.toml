@@ -32,7 +32,7 @@ rayon = "1.10"
 windows-sys = { version = "0.61", features = ["Win32_Storage_FileSystem", "Win32_Foundation", "Win32_System_Ioctl", "Win32_System_IO", "Win32_System_Threading"] }
 mime_guess = "2"
 sysinfo = "0.32"
-kamadak-exif = "0.5"
+kamadak-exif = "0.6"
 image = { version = "0.24", default-features = false, features = ["jpeg", "png", "webp", "bmp", "gif"] }
 rustface = { version = "0.1.7", default-features = false }
 base64 = "0.22"

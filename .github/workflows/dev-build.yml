@@ -20,6 +20,9 @@ concurrency:
 jobs:
   build:
     name: Installers (${{ matrix.platform }})
+    # Dependency-bot PRs only change lockfiles: CI's compile and tests cover them; skipping the
+    # installer build saves ~15-30 runner minutes each. (A skipped job counts as passed.)
+    if: github.actor != 'dependabot[bot]'
     strategy:
       fail-fast: false
       # PRs build Windows only (fast feedback); pushes build all three platforms.

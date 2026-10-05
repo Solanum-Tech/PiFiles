@@ -1,16 +1,37 @@
-# Weekly dependency updates: Rust crates, the pinned GitHub Actions, and npm tooling.
+# Dependency updates go to `dev` (never straight to `main`), grouped into one PR per ecosystem.
+#
+# Cargo and npm use "lockfile-only": Dependabot only moves Cargo.lock / package-lock.json within the
+# version ranges already declared in Cargo.toml / package.json, so every update is compatible and
+# needs no code changes. Upgrades to a new major (or 0.x minor) version are done deliberately by
+# a maintainer. Security fixes still arrive as separate Dependabot security updates.
 version: 2
 updates:
   - package-ecosystem: cargo
     directory: /src-tauri
-    schedule: { interval: weekly }
-    open-pull-requests-limit: 10
+    target-branch: dev
+    versioning-strategy: lockfile-only
+    schedule: { interval: weekly, day: monday }
+    open-pull-requests-limit: 3
     groups:
-      tauri:
-        patterns: ["tauri*", "wry", "tao", "webview2-com*"]
-  - package-ecosystem: github-actions
-    directory: /
-    schedule: { interval: weekly }
+      rust-dependencies:
+        patterns: ["*"]
+
   - package-ecosystem: npm
     directory: /
+    target-branch: dev
+    versioning-strategy: lockfile-only
     schedule: { interval: monthly }
+    open-pull-requests-limit: 2
+    groups:
+      npm-dependencies:
+        patterns: ["*"]
+
+  # Actions are pinned to commit SHAs; one PR updates them all.
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: dev
+    schedule: { interval: monthly }
+    open-pull-requests-limit: 2
+    groups:
+      github-actions:
+        patterns: ["*"]

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-fileop-start"
+description = "Enables the fileop_start command without any pre-configured scope."
+commands.allow = ["fileop_start"]
+
+[[permission]]
+identifier = "deny-fileop-start"
+description = "Denies the fileop_start command without any pre-configured scope."
+commands.deny = ["fileop_start"]

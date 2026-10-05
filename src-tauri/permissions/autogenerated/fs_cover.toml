@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-fs-cover"
+description = "Enables the fs_cover command without any pre-configured scope."
+commands.allow = ["fs_cover"]
+
+[[permission]]
+identifier = "deny-fs-cover"
+description = "Denies the fs_cover command without any pre-configured scope."
+commands.deny = ["fs_cover"]

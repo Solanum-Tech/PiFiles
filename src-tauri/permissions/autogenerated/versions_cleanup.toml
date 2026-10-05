@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-versions-cleanup"
+description = "Enables the versions_cleanup command without any pre-configured scope."
+commands.allow = ["versions_cleanup"]
+
+[[permission]]
+identifier = "deny-versions-cleanup"
+description = "Denies the versions_cleanup command without any pre-configured scope."
+commands.deny = ["versions_cleanup"]

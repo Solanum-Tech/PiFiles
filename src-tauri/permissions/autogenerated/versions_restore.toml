@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-versions-restore"
+description = "Enables the versions_restore command without any pre-configured scope."
+commands.allow = ["versions_restore"]
+
+[[permission]]
+identifier = "deny-versions-restore"
+description = "Denies the versions_restore command without any pre-configured scope."
+commands.deny = ["versions_restore"]

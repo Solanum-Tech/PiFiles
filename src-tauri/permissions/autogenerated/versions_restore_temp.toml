@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-versions-restore-temp"
+description = "Enables the versions_restore_temp command without any pre-configured scope."
+commands.allow = ["versions_restore_temp"]
+
+[[permission]]
+identifier = "deny-versions-restore-temp"
+description = "Denies the versions_restore_temp command without any pre-configured scope."
+commands.deny = ["versions_restore_temp"]

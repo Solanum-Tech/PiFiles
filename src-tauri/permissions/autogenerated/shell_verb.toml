@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-shell-verb"
+description = "Enables the shell_verb command without any pre-configured scope."
+commands.allow = ["shell_verb"]
+
+[[permission]]
+identifier = "deny-shell-verb"
+description = "Denies the shell_verb command without any pre-configured scope."
+commands.deny = ["shell_verb"]

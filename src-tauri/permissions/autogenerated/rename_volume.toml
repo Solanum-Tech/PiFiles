@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-rename-volume"
+description = "Enables the rename_volume command without any pre-configured scope."
+commands.allow = ["rename_volume"]
+
+[[permission]]
+identifier = "deny-rename-volume"
+description = "Denies the rename_volume command without any pre-configured scope."
+commands.deny = ["rename_volume"]

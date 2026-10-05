@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-shell-menu-invoke"
+description = "Enables the shell_menu_invoke command without any pre-configured scope."
+commands.allow = ["shell_menu_invoke"]
+
+[[permission]]
+identifier = "deny-shell-menu-invoke"
+description = "Denies the shell_menu_invoke command without any pre-configured scope."
+commands.deny = ["shell_menu_invoke"]

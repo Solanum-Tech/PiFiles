@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-get-face-scan-status"
+description = "Enables the get_face_scan_status command without any pre-configured scope."
+commands.allow = ["get_face_scan_status"]
+
+[[permission]]
+identifier = "deny-get-face-scan-status"
+description = "Denies the get_face_scan_status command without any pre-configured scope."
+commands.deny = ["get_face_scan_status"]

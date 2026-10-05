@@ -1,0 +1,16 @@
+# Weekly dependency updates: Rust crates, the pinned GitHub Actions, and npm tooling.
+version: 2
+updates:
+  - package-ecosystem: cargo
+    directory: /src-tauri
+    schedule: { interval: weekly }
+    open-pull-requests-limit: 10
+    groups:
+      tauri:
+        patterns: ["tauri*", "wry", "tao", "webview2-com*"]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }
+  - package-ecosystem: npm
+    directory: /
+    schedule: { interval: monthly }

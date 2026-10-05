@@ -1,0 +1,48 @@
+{
+  "format": "pifiles-theme",
+  "version": 1,
+  "id": "pifiles.studio-grey",
+  "name": "Studio Grey",
+  "author": "PiFiles",
+  "description": "18% middle grey - the reference tone for judging exposure and colour while culling.",
+  "radius": {
+    "control": 3,
+    "card": 4,
+    "dialog": 6
+  },
+  "modes": {
+    "dark": {
+      "--bg": "#3a3a3a",
+      "--bg-2": "#474747",
+      "--bg-3": "#424242",
+      "--mica": "#363636",
+      "--chrome": "rgba(255,255,255,.025)",
+      "--surface": "#404040",
+      "--surface-2": "#474747",
+      "--surface-solid": "#424242",
+      "--text": "#f0f0f0",
+      "--text-2": "color-mix(in srgb, #f0f0f0 74%, transparent)",
+      "--text-3": "color-mix(in srgb, #f0f0f0 50%, transparent)",
+      "--border": "rgba(255,255,255,.07)",
+      "--border-strong": "rgba(255,255,255,.12)",
+      "--stroke": "rgba(255,255,255,.07)",
+      "--hover": "rgba(255,255,255,.06)",
+      "--pressed": "rgba(255,255,255,.035)",
+      "--bg-hover": "rgba(255,255,255,.06)",
+      "--bg-active": "rgba(255,255,255,.04)",
+      "--accent": "#9ec5ff",
+      "--accent-hover": "#9ec5ff",
+      "--accent-text": "#b9d6ff",
+      "--on-accent": "#0b1d33",
+      "--accent-bg": "color-mix(in srgb, #9ec5ff 16%, transparent)",
+      "--sel": "color-mix(in srgb, #9ec5ff 20%, transparent)",
+      "--sel-hover": "color-mix(in srgb, #9ec5ff 26%, transparent)",
+      "--sel-text": "#f0f0f0",
+      "--flyout": "color-mix(in srgb, #424242 94%, transparent)",
+      "--card": "rgba(255,255,255,.04)",
+      "--card-hover": "rgba(255,255,255,.07)",
+      "--layer": "rgba(255,255,255,.03)",
+      "--layer-2": "rgba(255,255,255,.05)"
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "pifiles",
+  "private": true,
+  "license": "GPL-3.0-only",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "tauri": "tauri",
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "icons": "node scripts/build-icons.mjs"
+  },
+  "devDependencies": {
+    "@fluentui/svg-icons": "^1.1.343",
+    "@tauri-apps/cli": "^2"
+  }
+}

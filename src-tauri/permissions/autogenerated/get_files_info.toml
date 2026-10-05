@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-get-files-info"
+description = "Enables the get_files_info command without any pre-configured scope."
+commands.allow = ["get_files_info"]
+
+[[permission]]
+identifier = "deny-get-files-info"
+description = "Denies the get_files_info command without any pre-configured scope."
+commands.deny = ["get_files_info"]

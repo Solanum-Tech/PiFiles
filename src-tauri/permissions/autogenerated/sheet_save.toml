@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-sheet-save"
+description = "Enables the sheet_save command without any pre-configured scope."
+commands.allow = ["sheet_save"]
+
+[[permission]]
+identifier = "deny-sheet-save"
+description = "Denies the sheet_save command without any pre-configured scope."
+commands.deny = ["sheet_save"]

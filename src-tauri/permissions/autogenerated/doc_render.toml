@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-doc-render"
+description = "Enables the doc_render command without any pre-configured scope."
+commands.allow = ["doc_render"]
+
+[[permission]]
+identifier = "deny-doc-render"
+description = "Denies the doc_render command without any pre-configured scope."
+commands.deny = ["doc_render"]

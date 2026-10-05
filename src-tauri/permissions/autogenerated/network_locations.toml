@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-network-locations"
+description = "Enables the network_locations command without any pre-configured scope."
+commands.allow = ["network_locations"]
+
+[[permission]]
+identifier = "deny-network-locations"
+description = "Denies the network_locations command without any pre-configured scope."
+commands.deny = ["network_locations"]

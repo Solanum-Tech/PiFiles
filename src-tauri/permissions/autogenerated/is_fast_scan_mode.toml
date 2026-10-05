@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-is-fast-scan-mode"
+description = "Enables the is_fast_scan_mode command without any pre-configured scope."
+commands.allow = ["is_fast_scan_mode"]
+
+[[permission]]
+identifier = "deny-is-fast-scan-mode"
+description = "Denies the is_fast_scan_mode command without any pre-configured scope."
+commands.deny = ["is_fast_scan_mode"]

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-folder-stats"
+description = "Enables the folder_stats command without any pre-configured scope."
+commands.allow = ["folder_stats"]
+
+[[permission]]
+identifier = "deny-folder-stats"
+description = "Denies the folder_stats command without any pre-configured scope."
+commands.deny = ["folder_stats"]

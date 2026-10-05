@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-fs-reveal"
+description = "Enables the fs_reveal command without any pre-configured scope."
+commands.allow = ["fs_reveal"]
+
+[[permission]]
+identifier = "deny-fs-reveal"
+description = "Denies the fs_reveal command without any pre-configured scope."
+commands.deny = ["fs_reveal"]

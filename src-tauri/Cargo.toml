@@ -1,0 +1,114 @@
+[package]
+name = "pifiles"
+version = "0.1.0"
+description = "PiFiles - fast, private file manager with instant search and media management"
+authors = ["Solanum Tech"]
+license = "GPL-3.0-only"
+repository = "https://github.com/Solanum-Tech/PiFiles"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "pifiles_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+sha2 = "0.10"
+
+[dependencies]
+tauri = { version = "2", features = ["protocol-asset", "macos-private-api"] }
+tauri-plugin-opener = "2"
+tauri-plugin-updater = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# OS cryptographic RNG (tokens, keys)
+getrandom = "0.3"
+# Safe, read-only XML parsing for document previews (docx/odt/pptx)
+roxmltree = "0.20"
+walkdir = "2"
+rayon = "1.10"
+windows-sys = { version = "0.61", features = ["Win32_Storage_FileSystem", "Win32_Foundation", "Win32_System_Ioctl", "Win32_System_IO", "Win32_System_Threading"] }
+mime_guess = "2"
+sysinfo = "0.32"
+kamadak-exif = "0.5"
+image = { version = "0.24", default-features = false, features = ["jpeg", "png", "webp", "bmp", "gif"] }
+rustface = { version = "0.1.7", default-features = false }
+base64 = "0.22"
+zip = { version = "2", features = ["deflate", "deflate64", "bzip2", "zstd", "lzma", "aes-crypto"] }
+# Viewer: archives (7z incl. AES, RAR via UnRAR, tar/gz/bz2/xz), spreadsheets, local video streaming.
+sevenz-rust2 = { version = "0.23", features = ["aes256"] }
+unrar = "0.5"
+tar = "0.4"
+flate2 = "1"
+bzip2 = "0.6"
+xz2 = "0.1"
+calamine = { version = "0.36", features = ["dates"] }
+chrono = "0.4"
+csv = "1"
+# Folder/file pickers (archive extraction destination, theme/icon pack import/export).
+tauri-plugin-dialog = "2"
+# Spreadsheet editing that keeps the workbook's formatting.
+umya-spreadsheet = "3"
+# Previous versions: content-defined chunks, SHA-256 addressed, zstd compressed; folder watcher.
+zstd = "0.13"
+sha2 = "0.10"
+notify = "8"
+# Face AI: pure-Rust ONNX inference (no ONNX Runtime DLL, fully offline).
+# Models (OpenCV Zoo) are embedded from assets/: YuNet detector (MIT) + SFace 128-D recognizer (Apache-2.0).
+tract-onnx = "0.23"
+# Explorer-grade thumbnails (HEIC, video, PDF) via the Windows Shell; already built as a Tauri dependency.
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.61", features = ["Win32_UI_Shell", "Win32_UI_Shell_Common", "Win32_UI_WindowsAndMessaging", "Win32_Graphics_Gdi", "Win32_Graphics_Dwm", "Win32_System_LibraryLoader", "Win32_System_Com", "Win32_System_Threading", "Win32_Foundation", "Win32_Storage_FileSystem", "Win32_NetworkManagement_WNet", "Win32_NetworkManagement_NetManagement", "ApplicationModel_DataTransfer", "Storage", "Storage_Streams", "Storage_Search", "Foundation_Collections", "Win32_UI_Shell_PropertiesSystem", "Win32_System_Com_StructuredStorage", "Win32_System_Variant", "Win32_Security", "Win32_Security_Authorization", "Win32_System_Memory", "Win32_System_Power", "Data_Pdf", "Win32_Security_Cryptography", "Win32_Security_WinTrust"] }
+windows-collections = "0.2"
+# Locks the WebView2 down (no DevTools / browser menus / reload keys); same version Tauri uses.
+webview2-com = "0.39"
+# WebView2 COM interop must use the same windows-core as webview2-com / Tauri.
+windows-core = "0.62"
+
+[target.'cfg(not(windows))'.dependencies]
+trash = "5"
+
+[profile.release]
+opt-level = "s"        # optimize for size (low-end)
+lto = true             # link-time optimization for smaller binary
+codegen-units = 1
+panic = "unwind"       # background scans use catch_unwind; abort would take the whole app down
+strip = true           # strip symbols
+
+[profile.dev]
+incremental = true
+
+# Dependencies (image/JPEG/PNG decoders, ONNX, zip, etc.) are compiled optimised even in dev
+# builds: `cargo tauri dev` then decodes photos ~10x faster. Our own crate stays debug-friendly.
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.dev.package.rustface]
+opt-level = 3
+
+# Neural inference is 20-50x slower unoptimized; always optimize these even in dev.
+[profile.dev.package.tract-core]
+opt-level = 3
+[profile.dev.package.tract-linalg]
+opt-level = 3
+[profile.dev.package.tract-data]
+opt-level = 3
+[profile.dev.package.tract-onnx]
+opt-level = 3
+[profile.dev.package.tract-hir]
+opt-level = 3
+[profile.dev.package.jpeg-decoder]
+opt-level = 3
+
+# Release is size-optimized ("s"); keep the hot inference/decoding paths speed-optimized.
+[profile.release.package.tract-core]
+opt-level = 3
+[profile.release.package.tract-linalg]
+opt-level = 3
+[profile.release.package.jpeg-decoder]
+opt-level = 3
+[profile.release.package.image]
+opt-level = 3
+

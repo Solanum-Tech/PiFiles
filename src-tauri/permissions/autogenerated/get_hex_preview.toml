@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-get-hex-preview"
+description = "Enables the get_hex_preview command without any pre-configured scope."
+commands.allow = ["get_hex_preview"]
+
+[[permission]]
+identifier = "deny-get-hex-preview"
+description = "Denies the get_hex_preview command without any pre-configured scope."
+commands.deny = ["get_hex_preview"]

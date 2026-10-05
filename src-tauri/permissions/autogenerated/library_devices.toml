@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-library-devices"
+description = "Enables the library_devices command without any pre-configured scope."
+commands.allow = ["library_devices"]
+
+[[permission]]
+identifier = "deny-library-devices"
+description = "Denies the library_devices command without any pre-configured scope."
+commands.deny = ["library_devices"]

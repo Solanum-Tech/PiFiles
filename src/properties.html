@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Properties</title>
+    <link rel="icon" href="logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="fluent.css" />
+    <link rel="stylesheet" href="explorer.css" />
+    <link rel="stylesheet" href="features.css" />
+    <script src="guard.js"></script>
+    <script src="fluent-icons.js"></script>
+    <script src="icons.js"></script>
+    <script src="settings.js"></script>
+    <script src="packs.js"></script>
+    <script src="props-view.js"></script>
+  </head>
+  <body class="pp-window">
+    <header class="pp-titlebar" data-tauri-drag-region>
+      <img src="logo.svg" alt="" width="16" height="16" data-tauri-drag-region />
+      <span id="ppTitle" data-tauri-drag-region>Properties</span>
+      <button id="ppClose" class="pp-x" title="Close" aria-label="Close">
+        <svg viewBox="0 0 10 10" width="10" height="10"><path d="M1 1l8 8M9 1l-8 8" stroke="currentColor" stroke-width="1.1" /></svg>
+      </button>
+    </header>
+    <main id="ppRoot" class="pp-scroll"><div class="pp-loading">Reading properties…</div></main>
+    <footer class="pp-foot"><button id="ppOk" class="pf-btn primary">Close</button></footer>
+    <script src="properties.js"></script>
+  </body>
+</html>

@@ -39,3 +39,8 @@ GEMINI.md
 .clinerules
 .kiro/
 .amazonq/
+
+# Local backups and leftovers (never published)
+*.bak
+src-backup/
+.gitignore.*

@@ -3,6 +3,7 @@
 // Visual options become classes / CSS variables on <html>; behavioural ones are read by main.js
 // through PiSettings.get() and a `pifiles:settings` event.
 (function () {
+  const invoke = (c, a) => window.__TAURI__?.core?.invoke(c, a) ?? Promise.reject(new Error("no backend"));
   const KEY = "pifiles:settings";
 
   // ---- About page: edit these to match your organisation ----
@@ -18,6 +19,14 @@
     startupPath: "",
     confirmDelete: true,
     trackRecent: true,
+    defaultFileManager: false,
+    homeQuick: true,
+    homeDrives: true,
+    homeNetwork: true,
+    homeRecent: true,
+    startAtBoot: false,
+    startElevated: true,
+    startMinimized: true,
     // Appearance
     theme: (() => {
       try { return localStorage.getItem("fe:theme") || "fluent-dark"; } catch { return "fluent-dark"; }
@@ -53,7 +62,7 @@
     showThumbnails: true,
     foldersFirst: true,
     dateFormat: "relative",     // relative | long | short | iso
-    sizeUnits: "binary",        // binary (KiB) | decimal (KB)
+    sizeUnits: "windows",        // windows (KB, MB, GB - 1024) | decimal (1000) | iec (KiB, GiB)
     // Navigation pane
     showPinned: true,
     showDrives: true,
@@ -265,6 +274,10 @@
     if (key === "scanMode") {
       try { window.__TAURI__?.core?.invoke("set_fast_scan_mode", { fast: value === "fast" }); } catch {}
     }
+    const it = PAGES.flatMap(p => p.items || []).find(x => x && x.key === key);
+    if (it && typeof it.run === "function") {
+      try { it.run(value); } catch (e) { console.error("Error executing setting action for " + key, e); }
+    }
     listeners.forEach(fn => { try { fn(key, values); } catch (e) { console.error(e); } });
     window.dispatchEvent(new CustomEvent("pifiles:settings", { detail: { key, values } }));
     if (dialog) refreshDialog();
@@ -288,6 +301,46 @@
       { key: "trackRecent", type: "toggle", title: "Remember recently opened files", desc: "Shown under Recent and on Home. Turning this off also hides the list" },
       { type: "action", title: "Clear recent files", desc: "Forget the list of files you opened", label: "Clear", run: () => { window.__clearRecent?.(); window.toast?.("Recent files cleared"); } },
       { type: "action", title: "Clear history", desc: "Forget the last location PiFiles reopens at startup", label: "Clear", run: () => { try { ["pf:lastLoc", "fe:lastPath"].forEach(k => localStorage.removeItem(k)); } catch {} window.toast?.("History cleared"); } },
+      { heading: "Default file manager" },
+      { key: "defaultFileManager", type: "toggle", title: "Set as default file manager", desc: "Open folders and drives directly in PiFiles instead of Windows File Explorer",
+        run: async (val) => {
+          try {
+            await invoke("set_default_file_manager", { enable: !!val });
+            window.toast?.(val ? "PiFiles set as default file manager" : "Restored default Windows file manager");
+          } catch(e) {
+            window.toast?.("Failed: " + (e?.message || e));
+          }
+        }
+      },
+      { type: "action", title: "Windows Default Apps", desc: "Open Windows Settings to configure default file associations", label: "Open settings", run: () => invoke("open_default_apps_settings") },
+      { heading: "Home page sections" },
+      { key: "homeQuick", type: "toggle", title: "Quick access", desc: "Show pinned folders (Desktop, Downloads, Documents) on Home" },
+      { key: "homeDrives", type: "toggle", title: "Drives", desc: "Show drives and storage usage bars on Home" },
+      { key: "homeNetwork", type: "toggle", title: "Network locations", desc: "Show discovered computers, NAS, and mapped drives on Home" },
+      { key: "homeRecent", type: "toggle", title: "Recent files", desc: "Show recently opened files on Home" },
+      { heading: "Windows startup" },
+      { key: "startAtBoot", type: "toggle", title: "Open on Windows startup", desc: "Launch PiFiles automatically when you log into Windows",
+        run: async (val) => {
+          try {
+            await invoke("set_startup_status", { enabled: !!val, elevated: !!values.startElevated, minimized: !!values.startMinimized });
+            window.toast?.(val ? "PiFiles enabled for Windows startup" : "Removed from Windows startup");
+          } catch(e) { window.toast?.("Startup update failed: " + (e?.message || e)); }
+        }
+      },
+      { key: "startElevated", type: "toggle", title: "Run as Administrator (elevated)", desc: "Starts with highest privileges via Task Scheduler to avoid UAC prompts and enable full NTFS access",
+        run: async (val) => {
+          if (values.startAtBoot) {
+            try { await invoke("set_startup_status", { enabled: true, elevated: !!val, minimized: !!values.startMinimized }); } catch(e) {}
+          }
+        }
+      },
+      { key: "startMinimized", type: "toggle", title: "Start minimized in background", desc: "Quietly starts in the background without opening a window directly on startup",
+        run: async (val) => {
+          if (values.startAtBoot) {
+            try { await invoke("set_startup_status", { enabled: true, elevated: !!values.startElevated, minimized: !!val }); } catch(e) {}
+          }
+        }
+      },
     ]},
     { id: "appearance", title: "Appearance", icon: "palette", items: [
       { key: "theme", type: "segmented", title: "Color mode", desc: "Light, dark, or follow the system. Themes and icon packs are under Themes & icons",
@@ -336,8 +389,8 @@
       { key: "autoFolderSizes", type: "toggle", title: "Calculate folder sizes automatically", desc: "Fills the Size column for visible folders in the background. Off: sizes appear on demand" },
       { key: "dateFormat", type: "select", title: "Date format",
         options: [["relative", "Relative for recent (4 days ago)"], ["long", "12 June 2026"], ["short", "12/06/2026"], ["iso", "2026-06-12"]] },
-      { key: "sizeUnits", type: "segmented", title: "Size units", desc: "Binary matches Windows' own calculation",
-        options: [["binary", "KiB, MiB (1024)"], ["decimal", "KB, MB (1000)"]] },
+      { key: "sizeUnits", type: "segmented", title: "Size units", desc: "Choose display format for file and folder sizes",
+        options: [["windows", "KB, MB, GB (1024)"], ["decimal", "KB, MB (1000)"], ["iec", "KiB, MiB (1024)"]] },
     ]},
     { id: "handling", title: "File handling", icon: "openWith", items: [] },
     { id: "contextmenu", title: "Context menu", icon: "more", items: [] },
@@ -360,7 +413,7 @@
       { key: "seekLong", type: "select", title: "Long skip", desc: "J and L keys, and the skip buttons",
         options: [["5", "5 seconds"], ["10", "10 seconds"], ["15", "15 seconds"], ["30", "30 seconds"], ["60", "1 minute"], ["120", "2 minutes"], ["300", "5 minutes"]] },
       { type: "action", title: "Player keyboard shortcuts", desc: "Change the keys for play, skip, volume, subtitles and more", label: "Edit…", run: () => { page = "advanced"; refreshDialog(); setTimeout(() => dialog?.querySelector('[data-sec="keys:Movie player"]')?.scrollIntoView({ block: "start", behavior: "smooth" }), 60); } },
-      { type: "info", title: "Playback engine", desc: "Bundled FFmpeg 9.0 (LGPL). Formats WebView2 can't play (MKV, AVI, HEVC, AC-3/DTS…) are repackaged or converted on the fly using your GPU when available." },
+
     ]},
     { id: "navigation", title: "Navigation pane", icon: "sidebarNav", items: [
       { key: "sidebarCollapsed", type: "toggle", title: "Hide navigation pane", desc: "Also toggled with the button at the top-left" },
@@ -578,6 +631,20 @@
   function open(pageId, trigger) {
     if (!dialog) buildDialog();
     if (pageId) page = pageId;
+    invoke("is_default_file_manager").then(res => {
+      if (typeof res === "boolean" && values.defaultFileManager !== res) {
+        values.defaultFileManager = res;
+        refreshDialog();
+      }
+    }).catch(() => {});
+    invoke("get_startup_status").then(st => {
+      if (st && typeof st.enabled === "boolean") {
+        values.startAtBoot = st.enabled;
+        values.startElevated = st.elevated;
+        values.startMinimized = st.minimized;
+        refreshDialog();
+      }
+    }).catch(() => {});
     refreshDialog();
     document.documentElement.classList.add("pf-settings-open");
     if (window.PiMotion) PiMotion.open(dialog, trigger);

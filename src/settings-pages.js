@@ -68,10 +68,15 @@
       ${CATS.map(([cat, label, ext, desc]) => {
         const app = apps?.[ext]?.name;
         const cur = per[cat] || "";
+        const isMedia = cat === "video" || cat === "audio";
         return row(label, esc(desc) + (app ? `${desc ? " • " : ""}System default: <b>${esc(app)}</b>` : ""), `<select class="pf-select" data-cat="${cat}">
-          <option value="" ${!cur ? "selected" : ""}>Use the default above</option>
-          <option value="viewer" ${cur === "viewer" ? "selected" : ""}>PiFiles built-in viewer</option>
-          <option value="app" ${cur === "app" ? "selected" : ""}>${esc(app || "System default app")}</option></select>`);
+          ${isMedia ? `
+            <option value="" ${!cur || cur === "native" ? "selected" : ""}>Dedicated Native Player</option>
+            <option value="app" ${cur === "app" ? "selected" : ""}>${esc(app || "System default app")}</option>` : `
+            <option value="" ${!cur ? "selected" : ""}>Use the default above</option>
+            <option value="viewer" ${cur === "viewer" ? "selected" : ""}>PiFiles built-in viewer</option>
+            <option value="app" ${cur === "app" ? "selected" : ""}>${esc(app || "System default app")}</option>`}
+        </select>`);
       }).join("")}</div>
       <div class="pf-card-group">${row("Change the system's default apps", "Opens your operating system's default-apps settings", `<button class="pf-btn" data-sysdefaults>${I("open")} Open</button>`)}</div>`;
   }
@@ -265,7 +270,7 @@
     const auto = !!S().get("updateCheck");
     el.innerHTML = `
       <div class="pf-card-group">
-        ${row("Version " + ver, `Last checked: ${esc(when)}${upd.info ? ` · ${esc(upd.info.platform)} ${esc(upd.info.arch)} · ${esc(upd.info.distribution)}` : ""}`, `<button class="pf-btn" data-upd-check ${upd.busy ? "disabled" : ""}>${I("refresh")} Check for updates</button>`)}
+        ${row("Version " + ver, `Last checked: ${esc(when)}${upd.info ? ` · ${esc(upd.info.platform)} ${esc(upd.info.arch)} · ${esc(upd.info.distribution)}` : ""}`, `<button class="pf-btn" data-upd-check ${upd.busy ? "disabled" : ""}>${upd.busy ? '<span class="lm-spin"></span>' : I("refresh")} Check for updates</button>`)}
         <div class="pf-row upd-row">${status}</div>
       </div>
       <div class="pf-card-group">

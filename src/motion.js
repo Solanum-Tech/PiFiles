@@ -56,15 +56,25 @@ function watchList(spec) {
   return true;
 }
 
-// ---------- reveal highlight ----------
+// ---------- reveal highlight (60/120fps rAF throttled to prevent layout thrashing) ----------
 const REVEAL = ".file-card, .drive-card, .person-card, .group-card, .nav-item, .cmd-item, .tbtn";
+let revealRaf = 0;
+let lastPointerEvt = null;
+
 document.addEventListener("pointermove", e => {
-  const el = e.target.closest?.(REVEAL);
-  if (!el) return;
-  if (!el.classList.contains("fx-reveal")) el.classList.add("fx-reveal");
-  const r = el.getBoundingClientRect();
-  el.style.setProperty("--mx", `${e.clientX - r.left}px`);
-  el.style.setProperty("--my", `${e.clientY - r.top}px`);
+  lastPointerEvt = e;
+  if (!revealRaf) {
+    revealRaf = requestAnimationFrame(() => {
+      revealRaf = 0;
+      if (!lastPointerEvt) return;
+      const el = lastPointerEvt.target.closest?.(REVEAL);
+      if (!el) return;
+      if (!el.classList.contains("fx-reveal")) el.classList.add("fx-reveal");
+      const r = el.getBoundingClientRect();
+      el.style.setProperty("--mx", `${lastPointerEvt.clientX - r.left}px`);
+      el.style.setProperty("--my", `${lastPointerEvt.clientY - r.top}px`);
+    });
+  }
 }, { passive: true });
 
 // ---------- image fade-in ----------

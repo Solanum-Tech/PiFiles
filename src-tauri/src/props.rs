@@ -224,7 +224,7 @@ mod platform {
     pub fn fill(path: &str, meta: &std::fs::Metadata, out: &mut Props) {
         let attrs = meta.file_attributes();
         for (bit, name) in [
-            (0x1, "Read-only"), (0x2, "Hidden"), (0x4, "System"), (0x20, "Archive"), (0x100, "Temporary"),
+            (0x1, "Read-only"), (0x2, "Hidden"), (0x4, "System"), (0x100, "Temporary"),
             (0x200, "Sparse"), (0x400, "Link / reparse point"), (0x800, "Compressed"), (0x1000, "Offline"),
             (0x2000, "Not content-indexed"), (0x4000, "Encrypted"), (0x400000, "Online-only (cloud)"),
         ] {

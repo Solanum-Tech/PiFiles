@@ -164,19 +164,9 @@ pub fn get_media_groups(root: &str) -> PeopleGroups {
         return PeopleGroups { groups: Vec::new() };
     }
 
-    // 3. Not scanning and cache empty - spawn background scan and return empty immediately
-    // For People: always prefer full-machine scan (covers C,D,E + Pictures) over per-folder scan.
-    // Per-folder scan for C:\Users\Siril\Pictures previously found 2 candidates/1 face → <3 → empty,
-    // which hid the 12 machine-wide groups. Now we trigger full-machine scan even for per-folder callers.
-    if root.is_empty() {
-        faces::spawn_full_machine_scan(false);
-    } else {
-        // Try cached again (race with background thread) before falling back
-        // Spawn full-machine scan for People so UI eventually gets 12 groups, not empty per-folder result
-        faces::spawn_full_machine_scan(false);
-        // Also spawn per-folder scan as secondary (won't overwrite cache if it returns None)
-        // faces::spawn_face_scan(target.clone());
-    }
+    // 3. Not scanning and cache empty - return empty immediately.
+    // Background machine-wide scans are NOT auto-spawned here to keep idle CPU at 0%.
+    // Scans are only started when explicitly requested by user action (start_face_scan).
     PeopleGroups { groups: Vec::new() }
 }
 

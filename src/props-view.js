@@ -51,8 +51,10 @@
       h += section("General", rows.join(""));
     }
     h += section("Dates", [row("Created", date(p.created)), row("Modified", date(p.modified)), row("Accessed", date(p.accessed))].join(""));
-    const attrs = p.attributes?.length ? p.attributes.join(", ") : "Normal";
-    let sec = row("Attributes", attrs);
+    const validAttrs = (p.attributes || []).filter(a => a !== "Archive" && a !== "archive");
+    const attrs = validAttrs.length ? validAttrs.join(", ") : "Normal (Standard file)";
+    const title = validAttrs.length ? attrs : "Standard Windows file with no special attributes (read-only, hidden, or system) set";
+    let sec = row("Attributes", attrs, { title });
     if (p.owner) sec += row("Owner", p.owner);
     if (!compact && p.kind !== "drive") {
       sec += `<div class="pp-checks"><label><input type="checkbox" data-attr="readonly" ${p.readonly ? "checked" : ""}> Read-only</label><label><input type="checkbox" data-attr="hidden" ${p.hidden ? "checked" : ""}> Hidden</label></div>`;

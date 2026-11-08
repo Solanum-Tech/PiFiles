@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-is-default-file-manager"
+description = "Enables the is_default_file_manager command without any pre-configured scope."
+commands.allow = ["is_default_file_manager"]
+
+[[permission]]
+identifier = "deny-is-default-file-manager"
+description = "Denies the is_default_file_manager command without any pre-configured scope."
+commands.deny = ["is_default_file_manager"]

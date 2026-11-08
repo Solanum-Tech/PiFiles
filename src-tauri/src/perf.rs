@@ -54,6 +54,15 @@ pub fn configure_threads() {
         _ => p.cores,
     };
     let _ = rayon::ThreadPoolBuilder::new().num_threads(n).thread_name(|i| format!("pf-worker-{i}")).build_global();
+
+    // Background thread that periodically returns freed heap memory to Windows every 60s when idle
+    std::thread::Builder::new()
+        .name("pf-idle-trim".into())
+        .spawn(|| loop {
+            std::thread::sleep(std::time::Duration::from_secs(60));
+            trim_memory();
+        })
+        .ok();
 }
 
 /// Background (low CPU + I/O + memory priority) for the calling thread - for indexing/scans.

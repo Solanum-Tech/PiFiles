@@ -54,6 +54,7 @@
     advanced: line("M4 5.5h7M14 5.5h2M4 10h2M9 10h7M4 14.5h9M16 14.5h0M11 4v3M6 8.5v3M13 13v3"),
     keyboard: line("M3.5 5.5h13v9h-13zM6 8.5h.01M9 8.5h.01M12 8.5h.01M14.5 8.5h.01M7 11.5h6"),
     starFill: svg(`<path d="m10 3 2.1 4.3 4.7.7-3.4 3.3.8 4.7L10 13.8 5.8 16l.8-4.7L3.2 8l4.7-.7Z" fill="currentColor"/>`),
+    pieChart: svg(`<path d="M10 2.5a7.5 7.5 0 0 1 7.5 7.5H10V2.5Z" fill="currentColor"/><path d="M9 3.6a7.5 7.5 0 1 0 7.4 7.4H9V3.6Z" fill="currentColor" opacity=".7"/>`),
   };
 
   // ---- colourful places (sidebar / Home) ----

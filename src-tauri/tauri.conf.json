@@ -20,7 +20,10 @@
         "minHeight": 600,
         "decorations": false,
         "maximized": true,
-        "transparent": true
+        "transparent": true,
+        "visible": false,
+        "backgroundColor": "#1e1e1e",
+        "additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --enable-features=PlatformHEVCDecoderSupport --enable-blink-features=AudioVideoTracks"
       }
     ],
     "security": {
@@ -29,9 +32,9 @@
         "script-src": "'self'",
         "style-src": "'self' 'unsafe-inline'",
         "img-src": "'self' asset: http://asset.localhost data: blob:",
-        "media-src": "'self' asset: http://asset.localhost blob:",
+        "media-src": "'self' asset: http://asset.localhost blob: http://127.0.0.1:* http://localhost:*",
         "font-src": "'self' data:",
-        "connect-src": "ipc: http://ipc.localhost 'self' asset: http://asset.localhost",
+        "connect-src": "ipc: http://ipc.localhost 'self' asset: http://asset.localhost http://127.0.0.1:* http://localhost:*",
         "frame-src": "asset: http://asset.localhost",
         "object-src": "'none'",
         "base-uri": "'none'",
@@ -81,7 +84,9 @@
       "icons/icon.ico"
     ],
     "resources": {
-      "ffmpeg/*": "ffmpeg/"
+      "ffmpeg/*": "ffmpeg/",
+      "mpv/*": "mpv/",
+      "mpv/portable_config/**/*": "mpv/portable_config/"
     },
     "createUpdaterArtifacts": true,
     "windows": {

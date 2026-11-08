@@ -87,7 +87,7 @@
       <div id="layout">
         <nav id="sidebar" aria-label="Navigation">
           <div class="sidebar-scroll">
-            <button class="nav-item nav-top active" data-nav="home"><span class="ico" data-icon="place:home"></span><span class="lbl">Home</span><span class="count" id="homeCount">-</span></button>
+            <button class="nav-item nav-top active" data-nav="home"><span class="ico" data-icon="place:home"></span><span class="lbl">Home</span></button>
             <button class="nav-item nav-top" data-nav="recent" title="Files you opened recently"><span class="ico" data-icon="place:recent"></span><span class="lbl">Recent</span></button>
 
             <div class="nav-section" data-section="pinned">
@@ -176,7 +176,10 @@
               <button id="renameBtn" class="icon-btn cmd" title="Rename (F2)"><span data-icon="ui:rename"></span><span class="lbl">Rename</span></button>
               <button id="shareBtn" class="icon-btn cmd" title="Share"><span data-icon="ui:share"></span><span class="lbl">Share</span></button>
               <button id="deleteBtn" class="icon-btn cmd" title="Delete (Del)"><span data-icon="ui:delete"></span><span class="lbl">Delete</span></button>
+              <button id="restoreRecycleBtn" class="icon-btn cmd hidden" title="Restore selected items to original location"><span data-icon="ui:restore"></span><span class="lbl">Restore</span></button>
+              <button id="emptyRecycleBtn" class="icon-btn cmd hidden" title="Permanently empty all items from Recycle Bin"><span data-icon="place:recycle"></span><span class="lbl">Empty Recycle Bin</span></button>
               <button id="propertiesBtn" class="icon-btn cmd" title="Properties (Alt+Enter)"><span data-icon="ui:properties"></span><span class="lbl">Properties</span></button>
+              <button id="diskAnalyzerBtn" class="icon-btn cmd hidden" title="Analyze disk space & clean up"><span data-icon="ui:pieChart"></span><span class="lbl">Disk Analyzer</span></button>
               <span id="pathLabel" class="pill pf-info" title="Current path">-</span>
               <span id="itemCount" class="pill pf-info"> - items</span>
               <span id="selectionCount" class="pill pf-info hidden">0 selected</span>
@@ -319,7 +322,6 @@
                               <aside id="detailsPane" class="hidden" aria-label="Details">
                                 <div class="details-head">
                                   <strong>Details</strong>
-                                  <span id="detailsCount" class="pill" style="font-size:10px">-</span>
                                   <button id="detailsClose" class="icon-btn small" title="Close details" aria-label="Close">✕</button>
                                 </div>
                                 <div class="details-tabs" role="tablist" aria-label="Details pane mode">
@@ -366,6 +368,7 @@
                                 <span id="viewerTitle" class="viewer-title">Preview</span>
                                 <div class="viewer-actions">
                                   <button id="viewerMovePerson" class="tbtn small hidden" title="Move this photo to another person">⇄ Move Person...</button>
+                                  <button id="viewerEdit" class="tbtn small" title="Edit with default editor">Edit</button>
                                   <button id="viewerOpenExternal" class="tbtn small" title="Open with default app">Open externally</button>
                                   <button id="viewerClose" class="icon-btn small" title="Close (Esc)" aria-label="Close viewer">✕</button>
                                 </div>

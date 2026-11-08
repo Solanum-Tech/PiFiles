@@ -166,7 +166,7 @@ fn list_zip(path: String) -> Result<Vec<ArchiveEntry>, String> {
     let mut out = Vec::with_capacity(len);
     for i in 0..len {
         let entry = archive.by_index(i).map_err(|e| e.to_string())?;
-        let name = entry.name().to_string();
+        let name = entry.name().map(|n| n.to_string()).unwrap_or_default();
         // skip empty or overly nested? keep all but cap
         // zip crate 2.x: size via entry.size(), compressed_size
         let size = entry.size();

@@ -4,7 +4,7 @@ const THEMES=["fluent-dark","fluent-light","material-dark","material-light"];
 const pref=(k,d)=>{ try{ const v=window.PiSettings&&PiSettings.get(k); return v===undefined?d:v; }catch{ return d; } };
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>[...r.querySelectorAll(s)];
-const els={sidebar:$("#sidebar"),overlay:$("#overlay"),drivesList:$("#drivesList"),storageBar:$("#storageBar"),storageFill:$("#storageFill"),breadcrumbBar:$("#breadcrumbBar"),breadcrumbView:$("#breadcrumbView"),addressInput:$("#addressInput"),addressGo:$("#addressGo"),addressEditBtn:$("#addressEditBtn"),addressCopyBtn:$("#addressCopyBtn"),fileViewport:$("#fileViewport"),fileSpacer:$("#fileSpacer"),fileContainer:$("#fileContainer"),emptyState:$("#emptyState"),itemCount:$("#itemCount"),pathLabel:$("#pathLabel"),loadingLabel:$("#loadingLabel"),statusText:$("#statusText"),statusRight:$("#statusRight"),layoutInfo:$("#layoutInfo"),zoomLabel:$("#zoomLabel"),searchInput:$("#searchInput"),searchClear:$("#searchClear"),searchMeta:$("#searchMeta"),searchHeader:$("#searchHeader"),searchQueryLabel:$("#searchQueryLabel"),searchStats:$("#searchStats"),viewportWrap:$("#viewportWrap"),mediaView:$("#mediaView"),peopleTab:$("#peopleTab"),devicesTab:$("#devicesTab"),peopleGrid:$("#peopleGrid"),devicesGrid:$("#devicesGrid"),deviceMetaGrid:$("#deviceMetaGrid"),loadMoreWrap:$("#loadMoreWrap"),sortSelect:$("#sortSelect"),groupSelect:$("#groupSelect"),selectAllBtn:$("#selectAllBtn"),newFolderBtn:$("#newFolderBtn"),detailsToggle:$("#detailsToggle"),toast:$("#toast"),tabBar:$("#tabBar"),tabList:$("#tabList"),newTabBtn:$("#newTabBtn"),detailsPane:$("#detailsPane"),detailsResizer:$("#detailsResizer"),sidebarResizer:$("#sidebarResizer"),detailsContent:$("#detailsContent"),detailsPreview:$("#detailsPreview"),detailsProps:$("#detailsProps"),detailsClose:$("#detailsClose"),detailsCount:$("#detailsCount"),detailsPreviewTab:$("#detailsPreviewTab"),detailsPropsTab:$("#detailsPropsTab"),commandPalette:$("#commandPalette"),cmdInput:$("#cmdInput"),cmdList:$("#cmdList"),contextMenu:$("#contextMenu"),selectionCount:$("#selectionCount"),selectionInfo:$("#selectionInfo"),hiddenToggle:$("#hiddenToggle"),rebuildIndexBtn:$("#rebuildIndexBtn"),viewerModal:$("#viewerModal"),viewerBackdrop:$("#viewerBackdrop"),viewerContent:$("#viewerContent"),viewerTitle:$("#viewerTitle"),viewerMeta:$("#viewerMeta"),viewerClose:$("#viewerClose"),viewerOpenExternal:$("#viewerOpenExternal"),viewerMovePerson:$("#viewerMovePerson"),themeSelect:$("#themeSelect"),forwardBtn:$("#forwardBtn"),newBtn:$("#newBtn"),cutBtn:$("#cutBtn"),copyBtn:$("#copyBtn"),pasteBtn:$("#pasteBtn"),deleteBtn:$("#deleteBtn"),renameBtn:$("#renameBtn"),fileHeader:$("#fileHeader"),filterBtn:$("#filterBtn"),splitViewBtn:$("#splitViewBtn"),};
+const els={sidebar:$("#sidebar"),overlay:$("#overlay"),drivesList:$("#drivesList"),storageBar:$("#storageBar"),storageFill:$("#storageFill"),breadcrumbBar:$("#breadcrumbBar"),breadcrumbView:$("#breadcrumbView"),addressInput:$("#addressInput"),addressGo:$("#addressGo"),addressEditBtn:$("#addressEditBtn"),addressCopyBtn:$("#addressCopyBtn"),fileViewport:$("#fileViewport"),fileSpacer:$("#fileSpacer"),fileContainer:$("#fileContainer"),emptyState:$("#emptyState"),itemCount:$("#itemCount"),pathLabel:$("#pathLabel"),loadingLabel:$("#loadingLabel"),statusText:$("#statusText"),statusRight:$("#statusRight"),layoutInfo:$("#layoutInfo"),zoomLabel:$("#zoomLabel"),searchInput:$("#searchInput"),searchClear:$("#searchClear"),searchMeta:$("#searchMeta"),searchHeader:$("#searchHeader"),searchQueryLabel:$("#searchQueryLabel"),searchStats:$("#searchStats"),viewportWrap:$("#viewportWrap"),mediaView:$("#mediaView"),peopleTab:$("#peopleTab"),devicesTab:$("#devicesTab"),peopleGrid:$("#peopleGrid"),devicesGrid:$("#devicesGrid"),deviceMetaGrid:$("#deviceMetaGrid"),loadMoreWrap:$("#loadMoreWrap"),sortSelect:$("#sortSelect"),groupSelect:$("#groupSelect"),selectAllBtn:$("#selectAllBtn"),newFolderBtn:$("#newFolderBtn"),detailsToggle:$("#detailsToggle"),toast:$("#toast"),tabBar:$("#tabBar"),tabList:$("#tabList"),newTabBtn:$("#newTabBtn"),detailsPane:$("#detailsPane"),detailsResizer:$("#detailsResizer"),sidebarResizer:$("#sidebarResizer"),detailsContent:$("#detailsContent"),detailsPreview:$("#detailsPreview"),detailsProps:$("#detailsProps"),detailsClose:$("#detailsClose"),detailsPreviewTab:$("#detailsPreviewTab"),detailsPropsTab:$("#detailsPropsTab"),commandPalette:$("#commandPalette"),cmdInput:$("#cmdInput"),cmdList:$("#cmdList"),contextMenu:$("#contextMenu"),selectionCount:$("#selectionCount"),selectionInfo:$("#selectionInfo"),hiddenToggle:$("#hiddenToggle"),rebuildIndexBtn:$("#rebuildIndexBtn"),viewerModal:$("#viewerModal"),viewerBackdrop:$("#viewerBackdrop"),viewerContent:$("#viewerContent"),viewerTitle:$("#viewerTitle"),viewerMeta:$("#viewerMeta"),viewerClose:$("#viewerClose"),viewerOpenExternal:$("#viewerOpenExternal"),viewerEdit:$("#viewerEdit"),viewerMovePerson:$("#viewerMovePerson"),themeSelect:$("#themeSelect"),forwardBtn:$("#forwardBtn"),newBtn:$("#newBtn"),cutBtn:$("#cutBtn"),copyBtn:$("#copyBtn"),pasteBtn:$("#pasteBtn"),deleteBtn:$("#deleteBtn"),renameBtn:$("#renameBtn"),fileHeader:$("#fileHeader"),filterBtn:$("#filterBtn"),splitViewBtn:$("#splitViewBtn"),};
 let state={path:"",history:[],files:[],view:localStorage.getItem("fe:view")||"list",sort:localStorage.getItem("fe:sort")||"name-asc",group:localStorage.getItem("fe:group")||"none",showHidden:localStorage.getItem("fe:showHidden")==="1",detailsOpen:localStorage.getItem("fe:details")==="1",detailsMode:(()=>{const m=localStorage.getItem("fe:detailsMode"); if(m==="preview"||m==="details"||m==="hidden") return m; return localStorage.getItem("fe:details")==="1" ? "preview" : "hidden";})(),_lastDetailsTab:(()=>{const m=localStorage.getItem("fe:detailsMode"); return (m==="preview"||m==="details")?m:"preview";})(),searchQuery:"",searchResults:[],searchTotal:0,searchOffset:0,isSearching:false,searchMeta:{took_ms:0,indexed:false,has_more:false},tagMode:null,tagOffset:0,tagTotal:0,tagQuery:"",tagHasMore:false,tagTookMs:0,drives:[],mediaPeople:null,mediaDevices:null,peopleSelection:new Set(),tabs:[{id:1,loc:{k:"home"},back:[],fwd:[],title:"Home",scroll:0}],activeTabId:1,nextTabId:2,loc:{k:"home"},navToken:0,dirToken:0,knownFolders:{},selected:new Set(),lastSelectedIdx:-1,zoom:100,indexStatus:{ready:false,building:true,size:0}};
 let virt={scrollTop:0,raf:0};
 // --- Operation view + clipboard (fast copy/paste rivals native, multi-threaded via ops.rs) ---
@@ -221,7 +221,7 @@ const IS_APP=!!window.__TAURI__;
 async function safeInvoke(c,a,f){try{return await invoke(c,a)}
 catch(e){ if(IS_APP && typeof f==="function" && /mock/i.test(String(f))) throw e; return typeof f==="function"?f(a):f}}
 // expose opener for inline onclick (global scope) - lightweight
-try{ window.__invoke = invoke; window.__openExternal = (p)=> invoke("open_file",{path:p}).then(()=>toast("Opened with default app")).catch(e=>toast(String(e.message||e||e))); }catch{}
+try{ window.__invoke = invoke; window.invoke = invoke; window.safeInvoke = safeInvoke; window.__openExternal = (p)=> invoke("open_file",{path:p}).then(()=>toast("Opened with default app")).catch(e=>toast(String(e.message||e||e))); }catch{}
 /* One request per path: concurrent callers (list, grid, gallery, preview) share the same promise
    instead of the second one getting nothing and marking the file "no thumbnail". */
 const thumbInflight=new Map();
@@ -302,7 +302,7 @@ function mockDeviceGroups(){return{by_drive:[{drive:"C:",label:"Drive C:",key:"C
 function debounce(fn,ms){let t;
 return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}}
 function fmtSize(b){if(b==null||b===""||isNaN(Number(b))) return"-"; b=Number(b); if(b===0) return"0 B";
-  const bin=pref("sizeUnits","binary")!=="decimal"; const k=bin?1024:1000; const u=bin?["B","KiB","MiB","GiB","TiB"]:["B","KB","MB","GB","TB"];
+  const mode=pref("sizeUnits","windows"); const k=mode==="decimal"?1000:1024; const u=mode==="iec"?["B","KiB","MiB","GiB","TiB"]:["B","KB","MB","GB","TB"];
   let i=0; while(b>=k && i<u.length-1){ b/=k; i++; } return i===0? b+" B" : (b>=100? b.toFixed(0) : b.toFixed(i>=3?2:1))+" "+u[i];}
 function fmtFolderLabel(f){if(!f.is_dir) return fmtSize(f.size); const c=f.item_count; if(c==null) return"-"; if(c===0) return"Empty"; if(c===1) return"1 item"; return c+" items"; }
 function fmtFolderTooltip(f,cached){let tip="Folder"; if(f.item_count!=null) tip+=` • ${f.item_count} ${f.item_count===1?"item":"items"}`; if(cached && cached.size!=null) tip+=` • ${fmtSize(cached.size)}`; else if(cached && cached.loading) tip+=` • calculating…`; return tip;}
@@ -393,7 +393,24 @@ return esc(text);
 return esc(text.slice(0,i))+"<mark>"+esc(text.slice(i,i+q.length))+"</mark>"+esc(text.slice(i+q.length))}
 function toast(msg,ms=2400){els.toast.textContent=msg;els.toast.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>els.toast.classList.remove("show"),ms)}
 function calcTotalSize(files){return files.filter(f=>!f.is_dir).reduce((s,f)=>s+(Number(f.size)||0),0);}
-function statusSummary(){if(state.isSearching) return `Search: ${state.searchTotal} matches • ${state.searchMeta.took_ms}ms`; if(state.tagMode) { const label=TAG_LABELS[state.tagMode]||state.tagMode; return `${label} • ${state.tagTotal} files • ${state.tagTookMs}ms • ${state.path||"All drives"}`; } const n=filteredFiles().length; const total=calcTotalSize(filteredFiles()); const sizeStr= total?` • ${fmtSize(total)}`:""; const folderN=filteredFiles().filter(f=>f.is_dir).length; const fileN=n-folderN; return `${n} items • ${fileN} files • ${folderN} folders${sizeStr} • ${state.path||"Home"}`;}
+function statusSummary(){
+  if(state.isSearching) return `Search: ${state.searchTotal} matches • ${state.searchMeta.took_ms}ms`;
+  if(state.tagMode) { const label=TAG_LABELS[state.tagMode]||state.tagMode; return `${label} • ${state.tagTotal} files • ${state.tagTookMs}ms • ${state.path||"All drives"}`; }
+  const files=filteredFiles();
+  const n=files.length;
+  const folderN=files.filter(f=>f.is_dir).length;
+  const fileN=n-folderN;
+  const normPath=(state.path||"").replace(/[\/\\]+$/,"").toUpperCase();
+  const isDriveRoot=/^[A-Z]:$/.test(normPath);
+  const drive=isDriveRoot && state.drives ? state.drives.find(d=> (d.path||"").replace(/[\/\\]+$/,"").toUpperCase()===normPath) : null;
+  if(drive && drive.total_gb>0){
+    const usedStr=`${drive.used_gb.toFixed(1)} GB used of ${drive.total_gb.toFixed(1)} GB (${drive.free_gb.toFixed(1)} GB free)`;
+    return `${n} items • ${fileN} files, ${folderN} folders • ${usedStr} • ${state.path}`;
+  }
+  const total=calcTotalSize(files);
+  const sizeStr= total?` • ${fmtSize(total)} files`:"";
+  return `${n} items • ${fileN} files • ${folderN} folders${sizeStr} • ${state.path||"Home"}`;
+}
 function setLoading(v){els.loadingLabel.classList.toggle("hidden",!v);els.statusText.textContent=v?"Loading…":statusSummary();}
 function sortFiles(arr,sort){const a=[...arr];
 const[k,dir]=sort.split("-");a.sort((x,y)=>{if(k==="name"){const c=x.name.localeCompare(y.name);
@@ -435,6 +452,7 @@ function locTitle(l){ switch(l?.k){
   case "utag": return window.PiTags?.get(l.id)?.name||"Tag";
   case "network": return "Network";
   case "recent": return "Recent";
+  case "recycle": return "Recycle Bin";
   case "search": return `Search: ${l.q}`;
   default: return "Home"; } }
 function locIcon(l){ if(!window.PiIcons) return "";
@@ -448,6 +466,7 @@ function locIcon(l){ if(!window.PiIcons) return "";
     case "utag": return PiIcons.place("tags");
     case "network": return PiIcons.place("network");
     case "recent": return PiIcons.place("recent");
+    case "recycle": return PiIcons.place("recycle");
     case "search": return PiIcons.ui("search");
     default: return PiIcons.place("home"); } }
 const curTab=()=>state.tabs.find(t=>t.id===state.activeTabId)||state.tabs[0];
@@ -458,6 +477,11 @@ function whenViews(fn){ if(window.PiViews) fn(); else viewsQueue.push(fn); }
 window.addEventListener("pifiles:views-ready",()=>{ while(viewsQueue.length) try{ viewsQueue.shift()(); }catch(e){console.error(e)} });
 
 function showView(id){
+  if(id !== "mediaView" && peoplePollTimer){
+    clearInterval(peoplePollTimer);
+    peoplePollTimer = null;
+    safeInvoke("stop_face_scan", {}, null).catch(()=>{});
+  }
   for(const v of VIEW_IDS){
     const el=document.getElementById(v); if(!el) continue;
     const on=v===id;
@@ -475,6 +499,7 @@ function syncSidebar(loc){
   let sel=null;
   if(loc.k==="home") sel='[data-nav="home"]';
   else if(loc.k==="recent") sel='[data-nav="recent"]';
+  else if(loc.k==="recycle") sel='[data-pinned="recycle"]';
   else if(loc.k==="gallery") sel='[data-nav="media"]';
   else if(loc.k==="people"||loc.k==="person") sel='[data-nav="people"]';
   else if(loc.k==="devices"||loc.k==="device") sel='[data-nav="devices"]';
@@ -527,6 +552,13 @@ async function renderLoc(loc,{restoreScroll=false}={}){
   if(loc.k==="dir") state.path=loc.path; else if(loc.k!=="search") state.path="";
   try{ localStorage.setItem("pf:lastLoc", JSON.stringify(loc)); if(loc.k==="dir") localStorage.setItem("fe:lastPath", loc.path); }catch{}
   renderTabBar(); renderBreadcrumbs(); syncSidebar(loc); syncNavButtons();
+  if (window.__diskAnalyzerPath) {
+    const dBtn = document.getElementById("diskAnalyzerBtn");
+    if (dBtn) {
+      dBtn.classList.remove("hidden");
+      dBtn.title = (loc.k === "dir" && loc.path) ? `Analyze disk space in ${loc.path}` : "Analyze disk space & clean up (Entire PC)";
+    }
+  }
   const scroll=restoreScroll?(curTab().scroll||0):0;
   switch(loc.k){
     case "home": showView("homeView"); state.files=[]; updateCounts(); whenViews(()=>PiViews.home()); els.statusText.textContent=`${state.drives.length} drives`; break;
@@ -540,10 +572,43 @@ async function renderLoc(loc,{restoreScroll=false}={}){
     case "tag": showView("viewportWrap"); await loadTag(loc.tag,0,PAGE); break;
     case "utag": showView("viewportWrap"); await loadPathList(window.PiTags?.filesWith(loc.id)||[], `${locTitle(loc)} • tagged items`, token); break;
     case "recent": showView("viewportWrap"); await loadPathList(recentList().map(r=>r.path), "Recently opened in PiFiles", token); break;
+    case "recycle": showView("viewportWrap"); await loadRecycleBin(token); break;
     case "search": showView("viewportWrap"); runSearch(loc.q); break;
   }
 }
 /** Lists arbitrary paths (tags, recent files) in the file list. */
+
+async function loadRecycleBin(token){
+  setLoading(true);
+  try{
+    const items = await safeInvoke("list_recycle_bin_items", {}, () => []);
+    if(token !== state.navToken) return;
+    state.recycleItems = items || [];
+    state.files = (items || []).map(it => ({
+      name: it.name,
+      path: it.deleted_path || it.original_path,
+      original_path: it.original_path,
+      deleted_path: it.deleted_path,
+      is_dir: it.is_dir,
+      size: it.size || 0,
+      modified: it.deleted_date,
+      extension: it.is_dir ? "" : (it.name.split(".").pop() || "").toLowerCase(),
+      is_recycle: true,
+    }));
+    state.files = sortFiles(state.files, state.sort);
+    setLoading(false);
+    renderVirtualized(true);
+    updateCounts();
+    els.statusText.textContent = `${state.files.length} recycled item${state.files.length === 1 ? "" : "s"} across all drives`;
+  } catch(e) {
+    if(token !== state.navToken) return;
+    setLoading(false);
+    state.files = [];
+    renderVirtualized(true);
+    showEmpty("Could not load Recycle Bin: " + (e?.message || e));
+  }
+}
+
 async function loadPathList(paths,label,token){
   setLoading(true);
   let files=[];
@@ -677,7 +742,7 @@ const label=d.label||d.volume_label||""; const used_gb=d.used_gb??(total_gb-free
 const fallbackLabel= typeLabel==="Removable"?"USB Drive":typeLabel==="CDRom"?"CD Drive":typeLabel==="Remote"?"Network Drive":"Local Disk";
 const displayLabel=label||fallbackLabel;
 const name=d.name||`${displayLabel} (${path.replace(/\\$/,"")})`;
-return{name,path,mount_point:path,total_space,free_space,total_gb,free_gb,type:typeLabel,drive_type:typeLabel,used,file_system,is_removable,label:displayLabel,used_gb};});renderDrives(); const dc=$("#driveCount"); if(dc) dc.textContent=state.drives.length; const hc=$("#homeCount"); if(hc) hc.textContent=state.files.length||"-";}
+return{name,path,mount_point:path,total_space,free_space,total_gb,free_gb,type:typeLabel,drive_type:typeLabel,used,file_system,is_removable,label:displayLabel,used_gb};});renderDrives(); const dc=$("#driveCount"); if(dc) dc.textContent=state.drives.length;}
 function renderDrives(){if(!state.drives.length){els.drivesList.innerHTML=`<div style="padding:8px;color:var(--text-3);font-size:12px">No drives found <button data-act="reload" style="margin-left:6px;font-size:11px">Retry</button></div>`;
 return}
 function fmtGB(v){if(v==null||isNaN(v)||v<=0) return "0 GB"; const r=Math.round(v*10)/10; return (r%1===0? r.toFixed(0): r.toFixed(1))+" GB"; }
@@ -779,7 +844,6 @@ async function loadDir(path,{scroll=0,keepScroll=false}={}){
     els.fileViewport.scrollTop= keepScroll? prevScroll : scroll;
     if(state.view==="list") updateVirtualSlice();
     updateCounts(); updateSelectionUI();
-    const hc=$("#homeCount"); if(hc) hc.textContent=state.files.length;
   }catch(e){
     if(token!==state.dirToken) return;
     state.files=[]; els.fileContainer.innerHTML=""; els.fileSpacer.style.height="0";
@@ -790,10 +854,22 @@ async function loadDir(path,{scroll=0,keepScroll=false}={}){
   }
 }
 function showEmpty(msg){els.emptyState.classList.remove("hidden"); els.emptyState.innerHTML=`<div class="ico pf-empty-ico">${window.PiIcons?PiIcons.ui("warning"):"⚠"}</div><div><strong>Can't open this folder</strong><br/><span style="color:var(--text-3)">${esc(msg)}</span></div><button class="load-more" id="emptyRetry">Try again</button>`; document.getElementById("emptyRetry")?.addEventListener("click",()=>refreshView());}
-function updateCounts(){const filtered=filteredFiles(); els.itemCount.textContent=`${filtered.length} items`; if(els.detailsCount) els.detailsCount.textContent=`${filtered.length}`; // status bar shows total size like Windows Explorer
- els.statusText.textContent=statusSummary(); if(els.statusRight){ const total=calcTotalSize(filtered); els.statusRight.textContent= total? `${fmtSize(total)} • ${filtered.filter(f=>!f.is_dir).length} files` : `${filtered.length} items • ${state.path||"Home"}`; }
- // update pathLabel tooltip with size as well
- if(els.pathLabel) els.pathLabel.title= statusSummary();
+function updateCounts(){
+  const filtered=filteredFiles();
+  els.itemCount.textContent=`${filtered.length} items`;
+  els.statusText.textContent=statusSummary();
+  if(els.statusRight){
+    const normPath=(state.path||"").replace(/[\/\\]+$/,"").toUpperCase();
+    const isDriveRoot=/^[A-Z]:$/.test(normPath);
+    const drive=isDriveRoot && state.drives ? state.drives.find(d=> (d.path||"").replace(/[\/\\]+$/,"").toUpperCase()===normPath) : null;
+    if(drive && drive.total_gb>0){
+      els.statusRight.textContent=`${drive.free_gb.toFixed(1)} GB free of ${drive.total_gb.toFixed(1)} GB`;
+    } else {
+      const total=calcTotalSize(filtered);
+      els.statusRight.textContent= total? `${fmtSize(total)} • ${filtered.filter(f=>!f.is_dir).length} files` : `${filtered.length} items • ${state.path||"Home"}`;
+    }
+  }
+  if(els.pathLabel) els.pathLabel.title= statusSummary();
 }/* Virtualization with grouping & selection */function renderVirtualized(resetScroll=false){if(state.view==="grid"){renderGrid();
 return}
 if(resetScroll) els.fileViewport.scrollTop=0;
@@ -885,7 +961,16 @@ function maybeLoadMore(){
 if(els.fileViewport) els.fileViewport.addEventListener("scroll",()=>{ if(!state._lmRaf) state._lmRaf=requestAnimationFrame(()=>{ state._lmRaf=0; maybeLoadMore(); }); },{passive:true});
 if(els.fileViewport) els.fileViewport.addEventListener("scroll",()=>{try{if(state.view!=="list") return; if(virt.raf) return; virt.raf=requestAnimationFrame(()=>{try{virt.raf=0;updateVirtualSlice()}catch(e){console.error(e)}})}catch(e){console.error(e)}}); window.addEventListener("resize",()=>{try{if(state.view==="list") updateVirtualSlice()}catch(e){console.error(e)}});/* Selection */function getFileIndexByPath(path){const arr=filteredFiles(); return arr.findIndex(f=>f.path===path);}
 function updateSelectionUI(){const n=state.selected.size;
-if(n>0){ els.selectionCount.classList.remove("hidden"); els.selectionCount.textContent=`${n} selected`; if(els.selectionInfo){els.selectionInfo.classList.remove("hidden"); els.selectionInfo.textContent=`${n} selected`; } const selFiles=[...state.selected].map(p=> filteredFiles().find(x=>x.path===p) || state.searchResults.find(x=>x.path===p) || state.files.find(x=>x.path===p)).filter(Boolean); const selTotal=selFiles.filter(f=>!f.is_dir).reduce((s,f)=>s+(Number(f.size)||0),0); const selFolders=selFiles.filter(f=>f.is_dir).length; const selSizeStr= selTotal? ` • ${fmtSize(selTotal)}` : (selFolders?` • ${selFolders} folder${selFolders>1?"s":""}`:""); els.statusText.textContent=`${n} selected${selSizeStr} • ${filteredFiles().length} items`;} else { els.selectionCount.classList.add("hidden"); if(els.selectionInfo) els.selectionInfo.classList.add("hidden"); setLoading(false); }
+const isRecycle = state.loc?.k === "recycle";
+  const emptyRecycleBtn = document.getElementById("emptyRecycleBtn");
+  const restoreRecycleBtn = document.getElementById("restoreRecycleBtn");
+  if(emptyRecycleBtn) emptyRecycleBtn.classList.toggle("hidden", !isRecycle);
+  if(restoreRecycleBtn) restoreRecycleBtn.classList.toggle("hidden", !isRecycle || n === 0);
+  if(els.newBtn) els.newBtn.classList.toggle("hidden", isRecycle);
+  if(els.cutBtn) els.cutBtn.classList.toggle("hidden", isRecycle);
+  if(els.copyBtn) els.copyBtn.classList.toggle("hidden", isRecycle);
+  if(els.pasteBtn) els.pasteBtn.classList.toggle("hidden", isRecycle);
+  if(n>0){ els.selectionCount.classList.remove("hidden"); els.selectionCount.textContent=`${n} selected`; if(els.selectionInfo){els.selectionInfo.classList.remove("hidden"); els.selectionInfo.textContent=`${n} selected`; } const selFiles=[...state.selected].map(p=> filteredFiles().find(x=>x.path===p) || state.searchResults.find(x=>x.path===p) || state.files.find(x=>x.path===p)).filter(Boolean); const selTotal=selFiles.filter(f=>!f.is_dir).reduce((s,f)=>s+(Number(f.size)||0),0); const selFolders=selFiles.filter(f=>f.is_dir).length; const selSizeStr= selTotal? ` • ${fmtSize(selTotal)}` : (selFolders?` • ${selFolders} folder${selFolders>1?"s":""}`:""); els.statusText.textContent=`${n} selected${selSizeStr} • ${filteredFiles().length} items`;} else { els.selectionCount.classList.add("hidden"); if(els.selectionInfo) els.selectionInfo.classList.add("hidden"); setLoading(false); }
 if(n===1){ const p=[...state.selected][0]; const f=filteredFiles().find(x=>x.path===p)||state.searchResults.find(x=>x.path===p)||state.files.find(x=>x.path===p); if(f) showDetails(f); }
 else if(n===0 && state.detailsMode!=="hidden") showDetails(null);
   const personBar = document.getElementById("personPhotosActionBar");
@@ -1030,15 +1115,39 @@ function fileCategory(f){
 }
 function opensInViewer(f){
   const cat=fileCategory(f);
-  if(!cat) return false;
+  if(!cat || cat==="video" || cat==="audio") return false;
   const per=(pref("openHandlers",{})||{})[cat];
   if(per) return per==="viewer";
   return pref("fileOpenAction","viewer")!=="app";
 }
 /** Opens an item the way the user configured: folders navigate; files open in the built-in viewer or the default app. */
 function activateItem(path,isDir,originEl){
+  if(state.loc?.k==="recycle"){
+    const name = path.split("\\").pop() || path;
+    if(confirm(`Restore "${name}" to its original location?`)){
+      safeInvoke("restore_recycle_bin_items", { names: [name] }).then(() => {
+        toast("Restored " + name);
+        if(state.loc?.k==="recycle") loadRecycleBin(state.navToken);
+      }).catch(e => toast(String(e?.message||e)));
+    }
+    return;
+  }
   if(isDir){ navigateTo(path); return; }
   const f=fileByPath(path)||{name:path.split("\\").pop()||path, path, is_dir:false, size:0, extension:(path.split(".").pop()||"").toLowerCase(), modified:""};
+  const cat=fileCategory(f);
+  if(cat==="video" || cat==="audio"){
+    const handler=(pref("openHandlers",{})||{})[cat];
+    addRecent(path);
+    if(handler==="app"){
+      window.__openExternal?.(path);
+    } else {
+      invoke("media_open_native",{path:f.path, start:null, audio:null}).catch(e=>{
+        toast(String(e?.message||e));
+        window.__openExternal?.(path);
+      });
+    }
+    return;
+  }
   if(getExt(f)==="lnk"||getExt(f)==="url"||getExt(f)==="exe"||getExt(f)==="msi"||!opensInViewer(f)){ addRecent(path); window.__openExternal?.(path); }
   else openViewer(f,originEl);
 }
@@ -1085,9 +1194,9 @@ async function renderDetailsPreview(file){
     // small pdf → iframe via assetUrl; details shows first page hint + open button
     if((file.size||0) < 5*1024*1024){
       const url=assetUrl(file.path);
-      return `<iframe src="${url}" style="width:100%;height:180px;border:1px solid var(--border);border-radius:6px;background:#fff"></iframe><div style="font-size:10px;color:var(--text-3)">PDF • <a href="#" data-act="viewer" data-arg="${esc(file.path)}">open viewer</a> • <a href="#" data-act="external" data-arg="${esc(file.path)}">open externally</a></div>`;
+      return `<iframe src="${url}" style="width:100%;height:180px;border:1px solid var(--border);border-radius:6px;background:#fff"></iframe><div style="font-size:10px;color:var(--text-3)">PDF • <a href="#" data-act="viewer" data-arg="${esc(file.path)}">open viewer</a> • <a href="#" data-act="edit" data-arg="${esc(file.path)}">edit</a> • <a href="#" data-act="external" data-arg="${esc(file.path)}">open externally</a></div>`;
     }
-    return `<div class="ph">📄</div><div style="font-size:11px;color:var(--text-3)">PDF • ${(file.size?fmtSize(file.size):"")} • <a href="#" data-act="external" data-arg="${esc(file.path)}">open externally</a></div>`;
+    return `<div class="ph">📄</div><div style="font-size:11px;color:var(--text-3)">PDF • ${(file.size?fmtSize(file.size):"")} • <a href="#" data-act="edit" data-arg="${esc(file.path)}">edit</a> • <a href="#" data-act="external" data-arg="${esc(file.path)}">open externally</a></div>`;
   }
   if(TEXT_EXTS.has(ext) && ext!=="svg"){
     // fetch text preview inline (lightweight 200KB cap)
@@ -1098,16 +1207,16 @@ async function renderDetailsPreview(file){
         // simple md highlight
         if(ext==="md") display=txt.slice(0,1200);
         if(display.length>1200) display=display.slice(0,1200)+"\\n… truncated";
-        return `<pre style="max-height:160px">${esc(display)}</pre><div style="font-size:10px;color:var(--text-3)">Text preview • double-click for full viewer</div>`;
+        return `<pre style="max-height:160px">${esc(display)}</pre><div style="font-size:10px;color:var(--text-3)">Text preview • <a href="#" data-act="edit" data-arg="${esc(file.path)}">edit</a> • double-click for full viewer</div>`;
       }
     }catch(e){ /* binary -> hex */ }
-    return `<div class="ph">📝</div><div style="font-size:11px;color:var(--text-3)">Text file • double-click to view</div>`;
+    return `<div class="ph">📝</div><div style="font-size:11px;color:var(--text-3)">Text file • <a href="#" data-act="edit" data-arg="${esc(file.path)}">edit</a> • double-click to view</div>`;
   }
   if(ARCHIVE_EXTS.has(ext)){
     return `<div class="ph">📦</div><div style="font-size:11px;color:var(--text-3)">Archive • double-click to list contents (100 max)</div>`;
   }
   if(DOC_EXTS.has(ext)){
-    return `<div class="ph">${iconFor(file)}</div><div style="font-size:11px;color:var(--text-3)">${esc(ext.toUpperCase())} document • <a href="#" data-act="external" data-arg="${esc(file.path)}">open externally</a></div>`;
+    return `<div class="ph">${iconFor(file)}</div><div style="font-size:11px;color:var(--text-3)">${esc(ext.toUpperCase())} document • <a href="#" data-act="edit" data-arg="${esc(file.path)}">edit</a> • <a href="#" data-act="external" data-arg="${esc(file.path)}">open externally</a></div>`;
   }
   // fallback - try hex preview hint
   return `<div class="ph">${iconFor(file)}</div><div style="font-size:11px;color:var(--text-3)">Double-click for viewer • properties below</div>`;
@@ -1176,7 +1285,23 @@ function upgradeDetailsProps(file){
 }
 /** Explorer-style Properties dialog in its own window (Alt+Enter / context menu). */
 async function openPropertiesWindow(paths){
-  paths=(paths||[]).filter(Boolean); if(!paths.length){ toast("Select something first"); return; }
+  paths=(paths||[]).filter(Boolean);
+  if(!paths.length){
+    if(state.selected && state.selected.size > 0){
+      paths = [...state.selected];
+    } else if(state.loc?.k === "dir" && state.path){
+      paths = [state.path];
+    } else if(!state.loc || state.loc.k === "home"){
+      try { await invoke("open_this_pc_properties"); } catch(e) { toast(String(e?.message||e)); }
+      return;
+    } else if(state.loc?.k === "recycle"){
+      try { await invoke("open_recycle_bin"); } catch(e) { toast(String(e?.message||e)); }
+      return;
+    } else {
+      toast("Select something first");
+      return;
+    }
+  }
   if(!window.__TAURI__){ const f=fileByPath(paths[0]); if(f){ setDetailsMode("details"); showDetails(f); } return; }
   try{ await invoke("open_properties_window",{paths}); }catch(e){ toast(String(e?.message||e)); }
 }
@@ -1287,11 +1412,22 @@ function addViewerBackButton(file){
 }
 async function openViewer(file,originEl){
   if(!file) return;
+  if(isVideoFile(file) || isAudioFile(file)){
+    addRecent(file.path);
+    invoke("media_open_native", { path: file.path, start: null, audio: null }).catch(e => {
+      toast(String(e?.message || e));
+      window.__openExternal?.(file.path);
+    });
+    return;
+  }
   const wasOpen=els.viewerModal && !els.viewerModal.classList.contains("hidden");
   currentViewerFile=file;
   if(!file.backTo) addRecent(file.path);
   const ext=getExt(file);
   if(els.viewerTitle) els.viewerTitle.textContent=file.name+" • "+(file.size?fmtSize(file.size):"-")+" • "+ext.toUpperCase();
+  if(els.viewerEdit) {
+    els.viewerEdit.classList.remove("hidden");
+  }
   if(els.viewerModal && !wasOpen){
     viewerOrigin=originEl||viewerOriginEl(file.path);
     if(window.PiMotion) PiMotion.open(els.viewerModal, viewerOrigin); else els.viewerModal.classList.remove("hidden");
@@ -1568,8 +1704,13 @@ function buildContextMenu(file){
   const paths=getSelectedPathsForOp(file); const multi=paths.length>1; const isDir=!!file.is_dir;
   const items=[
     {label:"Open", icon:"open", bold:true, hint:pref("openWith","double")==="single"?"Click":"Double-click", action:()=> activateItem(file.path,isDir)},
+    ...(!isDir && !multi ? [{label:"Edit", icon:"edit", action:()=> invoke("shell_verb",{paths:[file.path],verb:"edit"}).catch(()=>window.__openExternal?.(file.path))}] : []),
     isDir ? {label:"Open in new tab", icon:"add", action:()=> newTab(file.path)} : {label:"Open with", icon:"openWith", children:[
-      {label:"Built-in viewer", icon:"eye", action:()=> openViewer(file)},
+      ...(!isDir && (isVideoFile(file) || isAudioFile(file)) ? [
+        {label:"Native Player", icon:"videos", action:()=> invoke("media_open_native",{path:file.path, start:null, audio:null}).catch(e=>toast(String(e?.message||e)))},
+      ] : [
+        {label:"Built-in viewer", icon:"eye", action:()=> openViewer(file)},
+      ]),
       {label:"Default app", icon:"open", action:()=> window.__openExternal(file.path)},
       {sep:true},
       {label:"Choose another app…", icon:"apps", action:()=> invoke("open_with_dialog",{path:file.path}).catch(e=>toast(String(e?.message||e)))},
@@ -1677,6 +1818,28 @@ async function openSubmenu(menu, btn, focusFirst){
 }
 /** Opens the menu; system entries arrive asynchronously and are merged in place. */
 function showContextMenu(x,y,file, customItems){
+  if(state.loc?.k==="recycle" && !customItems){
+    const paths = state.selected.size ? [...state.selected] : [file.path];
+    const names = paths.map(p => { const f = state.files.find(x => x.path === p); return f ? f.name : p.split("\\").pop(); });
+    customItems = [
+      { label: `Restore${paths.length > 1 ? " (" + paths.length + ")" : ""}`, icon: "restore", action: async () => {
+        try {
+          await safeInvoke("restore_recycle_bin_items", { names });
+          toast(`Restored ${names.length} item${names.length === 1 ? "" : "s"}`);
+          loadRecycleBin(state.navToken);
+        } catch(e) { toast("Restore failed: " + (e?.message || e)); }
+      }},
+      { sep: true },
+      { label: "Empty Recycle Bin", icon: "delete", danger: true, action: async () => {
+        if(confirm("Are you sure you want to permanently empty the Recycle Bin?")){
+          try { await safeInvoke("empty_recycle_bin"); toast("Recycle Bin emptied"); loadRecycleBin(state.navToken); }
+          catch(e) { toast("Empty failed: " + (e?.message || e)); }
+        }
+      }},
+      { sep: true },
+      { label: "Properties", icon: "properties", action: () => openPropertiesWindow(paths) }
+    ];
+  }
   const raw=customItems || buildContextMenu(file);
   ctxTarget=file;
   const sysIdx=raw.findIndex(i=>i.sys==="files"||i.sys==="background");
@@ -1813,7 +1976,7 @@ const results=Array.isArray(res)?res:(res.results||[]); const total=Array.isArra
 const sorted=sortFiles(results,state.sort); state.searchResults.push(...sorted); state.searchOffset+=results.length; state.searchTotal=total;state.searchMeta.took_ms=res.took_ms??state.searchMeta.took_ms; state.searchMeta.indexed=!!res.indexed;showSearchUI(q,total,state.searchResults.length); renderVirtualized(false);}finally{}}
 async function fetchIndexStatus(){const s=await safeInvoke("get_index_status",{}, {ready:false,building:true,size:0});state.indexStatus={ready:!!s.ready,building:!!s.building,size:s.size||0}; state._indexBuilding=!!s.building||!s.ready;
 const meta= state.indexStatus.ready? `Indexed ${state.indexStatus.size.toLocaleString()} • ${state.searchMeta.took_ms||0}ms` : (state.indexStatus.building? "Indexing…":"No index");
-if(!state.isSearching){ els.searchMeta.textContent= state.indexStatus.ready? `${state.indexStatus.size.toLocaleString()} indexed` : meta; els.searchMeta.style.display="block"; els.searchMeta.style.opacity=".7"; setTimeout(()=>{ if(!state.isSearching && !els.searchInput.value) els.searchMeta.style.display="none"},3000); }
+// Search input status kept clean per user design request
 if(els.statusRight) els.statusRight.textContent= state.indexStatus.ready? `Indexed ${state.indexStatus.size.toLocaleString()} • lite` : "Indexing… • lite";
 return state.indexStatus;}/* Media *//* Media - People with Immich/Google Photos labeling */
 let peopleFilterText="";
@@ -1910,8 +2073,8 @@ async function loadMediaPeople(force=false){
     await poll();
     let st = await safeInvoke("get_all_drives_scan_status",{}, null);
     if(!st) st = await safeInvoke("get_face_scan_status",{}, {scanning:false});
-    if(st && st.scanning){
-      if(!peoplePollTimer) peoplePollTimer=setInterval(poll, 1000);
+    if(st && st.scanning && (state.loc?.k==="people" || state.loc?.k==="media")){
+      if(!peoplePollTimer) peoplePollTimer=setInterval(poll, 2500);
     }
 
     return state.mediaPeople;
@@ -2302,6 +2465,9 @@ if(els.viewerBackdrop) els.viewerBackdrop.onclick=closeViewer;
 if(els.viewerOpenExternal) els.viewerOpenExternal.onclick=()=>{
   if(currentViewerFile) invoke("open_file",{path:currentViewerFile.path}).then(()=>toast("Opened with default app")).catch(e=>toast(String(e.message||e)));
 };
+if(els.viewerEdit) els.viewerEdit.onclick=()=>{
+  if(currentViewerFile) invoke("shell_verb",{paths:[currentViewerFile.path],verb:"edit"}).then(()=>toast("Opening editor...")).catch(()=>invoke("open_file",{path:currentViewerFile.path}).catch(e=>toast(String(e.message||e))));
+};
 window.addEventListener("keydown", e=>{
   if(e.key==="Escape" && els.viewerModal && !els.viewerModal.classList.contains("hidden")){
     e.preventDefault(); closeViewer();
@@ -2345,13 +2511,49 @@ if(els.rebuildIndexBtn) els.rebuildIndexBtn.onclick=async()=>{ toast("Rebuilding
 if(els.themeSelect){ els.themeSelect.value=document.documentElement.getAttribute("data-theme")||localStorage.getItem("fe:theme")||"fluent-dark"; els.themeSelect.addEventListener("change",e=>{ setTheme(e.target.value); }); }
 $$("[data-pinned]").forEach(btn=> btn.addEventListener("click",()=>{
   const k=btn.getAttribute("data-pinned");
+  if(k==="recycle"){
+    go({k: "recycle"});
+    closeSidebar();
+    return;
+  }
   const kf=state.knownFolders||{};
-  const map={ desktop:kf.desktop, downloads:kf.downloads, documents:kf.documents, pictures:kf.pictures, music:kf.music, videos:kf.videos, recycle:"C:\\$Recycle.Bin"};
+  const map={ desktop:kf.desktop, downloads:kf.downloads, documents:kf.documents, pictures:kf.pictures, music:kf.music, videos:kf.videos };
   const target=map[k]||"";
-  if(k==="recycle") toast("Recycle Bin - opening C:\\$Recycle.Bin");
   navigateTo(target);
   closeSidebar();
 }));
+document.getElementById("restoreRecycleBtn")?.addEventListener("click", async () => {
+  const sel = [...state.selected];
+  if(!sel.length) return;
+  const names = sel.map(p => {
+    const f = state.files.find(x => x.path === p);
+    return f ? f.name : p.split("\\").pop();
+  });
+  try {
+    await safeInvoke("restore_recycle_bin_items", { names });
+    toast(`Restored ${names.length} item${names.length === 1 ? "" : "s"}`);
+    if(state.loc?.k==="recycle") loadRecycleBin(state.navToken);
+  } catch(e) { toast("Failed to restore: " + (e?.message||e)); }
+});
+document.getElementById("emptyRecycleBtn")?.addEventListener("click", async () => {
+  if(confirm("Are you sure you want to permanently delete all items in the Recycle Bin?")){
+    try {
+      await safeInvoke("empty_recycle_bin");
+      toast("Recycle Bin emptied");
+      if(state.loc?.k==="recycle") loadRecycleBin(state.navToken);
+    } catch(e) { toast("Failed to empty: " + (e?.message||e)); }
+  }
+});
+document.getElementById("propertiesBtn")?.addEventListener("click", () => openPropertiesWindow());
+document.getElementById("diskAnalyzerBtn")?.addEventListener("click", async () => {
+  const target = (state.loc?.k === "dir" && state.path) ? state.path : null;
+  try {
+    await invoke("launch_disk_analyzer", { path: target });
+    toast(target ? `Opened Disk Analyzer for ${target}` : "Opened Disk Analyzer for Entire PC");
+  } catch(e) {
+    toast("Disk Analyzer: " + (e?.message || e));
+  }
+});
 if(els.newBtn) els.newBtn.addEventListener("click", ()=> doCreateFolder());
 if(els.cutBtn) els.cutBtn.addEventListener("click", ()=> { if(state.selected.size) copySelectionToClipboard("cut"); else toast("Select files to cut"); });
 if(els.copyBtn) els.copyBtn.addEventListener("click", ()=> { if(state.selected.size) copySelectionToClipboard("copy"); else toast("Select files to copy"); });
@@ -2914,9 +3116,8 @@ function safeBoot(){
     state.tabs[0].loc=startLoc; state.tabs[0].title=locTitle(startLoc);
     loadDrives().catch(e=>console.error("loadDrives",e)).finally(()=>{ try{ if(!state.drives.length) renderDrives(); }catch(e){console.error(e)} });
     renderLoc(startLoc);
-    // People data and review suggestions aren't needed for the first screen; load them once the app is idle.
-    const idle=window.requestIdleCallback||(f=>setTimeout(f,1500));
-    setTimeout(()=>idle(()=>{ try{ loadMediaPeople().catch(e=>console.error("loadMediaPeople",e)); }catch(e){console.error(e)} try{ loadFaceSuggestions().catch(e=>console.error("loadFaceSuggestions",e)); }catch(e){console.error(e)} }), perfTierNow()==="low"?15000:5000);
+    safeInvoke("get_cli_path",{},null).then(cli=>{ if(cli){ const cl=pathLoc(cli); state.tabs[0].loc=cl; state.tabs[0].title=locTitle(cl); renderLoc(cl); } }).catch(()=>{});
+    // People data is loaded on-demand when visiting the People view, keeping idle CPU/memory at near zero.
     try{ fetchIndexStatus(); }catch(e){console.error(e)}
     // Poll the index status quickly only while it's building, and never while the window is hidden.
     (function pollIndex(){ setTimeout(()=>{ try{ if(!document.hidden) fetchIndexStatus(); }catch(e){console.error(e)} pollIndex(); }, state._indexBuilding?3000:30000); })();
@@ -2940,6 +3141,18 @@ function safeBoot(){
         renderVirtualized(false); if(k==="sizeUnits"){ try{ updateCounts(); }catch{} }
       }
     }catch(err){ console.error("settings",err); } });window.toast=toast;
+    try{ safeInvoke("show_main_window",{},null); }catch(_){}
+    safeInvoke("get_disk_analyzer_path", {}, null).then(path => {
+      window.__diskAnalyzerPath = path;
+      if (path) {
+        const dBtn = document.getElementById("diskAnalyzerBtn");
+        if (dBtn) {
+          dBtn.classList.remove("hidden");
+          const curP = (state.loc?.k === "dir" && state.path) ? state.path : null;
+          dBtn.title = curP ? `Analyze disk space in ${curP}` : "Analyze disk space & clean up (Entire PC)";
+        }
+      }
+    }).catch(() => {});
   }catch(e){console.error("safeBoot fatal",e); try{toast("Boot error: "+(e.message||e))}catch(_){}}
 }
 if(document.readyState==="loading"){ document.addEventListener("DOMContentLoaded", safeBoot); } else { safeBoot(); }
@@ -2957,6 +3170,7 @@ document.addEventListener("click",e=>{
   switch(el.dataset.act){
     case "viewer": e.preventDefault(); window.__viewerOpen?.(arg); break;
     case "external": e.preventDefault(); Promise.resolve(window.__openExternal?.(arg)).catch(err=>toast(String(err?.message||err))); break;
+    case "edit": e.preventDefault(); invoke("shell_verb",{paths:[arg],verb:"edit"}).catch(()=>window.__openExternal?.(arg)); break;
     case "copy": navigator.clipboard?.writeText(arg).then(()=>toast("Copied")); break;
     case "zoom-toggle": el.style.transform=el.style.transform?"":"scale(1.8)"; el.style.cursor=el.style.transform?"zoom-out":"zoom-in"; break;
     case "stop": e.stopPropagation(); break;

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-list-recycle-bin-items"
+description = "Enables the list_recycle_bin_items command without any pre-configured scope."
+commands.allow = ["list_recycle_bin_items"]
+
+[[permission]]
+identifier = "deny-list-recycle-bin-items"
+description = "Denies the list_recycle_bin_items command without any pre-configured scope."
+commands.deny = ["list_recycle_bin_items"]

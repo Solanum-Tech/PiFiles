@@ -695,3 +695,34 @@ html, body { background: var(--mica) !important; font-size: var(--fs-base); }
 @keyframes pf-size-shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
 .f-size-live { color: var(--text-3); }
 @media (prefers-reduced-motion: reduce) { .f-size-pending { animation: none; } }
+
+/* Uniform 36px sidebar items across all sections */
+#sidebar .nav-item, #sidebar .nav-title {
+  height: 36px !important;
+  min-height: 36px !important;
+  max-height: 36px !important;
+  flex: 0 0 36px !important;
+  box-sizing: border-box !important;
+}
+#sidebar .sidebar-scroll {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+}
+.cm-row2 {
+  display: flex !important;
+  gap: 10px !important;
+  width: 100% !important;
+  align-items: center !important;
+}
+.cm-row2 .pf-select {
+  flex: 0 0 160px !important;
+  min-width: 140px !important;
+  max-width: 180px !important;
+  width: 160px !important;
+}
+.cm-row2 .pf-text {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  width: 100% !important;
+}

@@ -142,10 +142,15 @@ document.getElementById("shareBtn")?.addEventListener("click", () => {
 window.__createFile = createFile;
 
 function showProperties() {
-  // Same as Alt+Enter: the separate Properties window for the selection (or the open folder).
   const st = window.__explorer?.state;
-  const paths = st ? (st.selected.size ? [...st.selected] : (st.loc?.k === "dir" ? [st.path] : [])) : [];
-  window.__openProperties?.(paths);
+  if (!st) { window.__openProperties?.([]); return; }
+  if (st.selected?.size > 0) {
+    window.__openProperties?.([...st.selected]);
+  } else if (st.loc?.k === "dir" && st.path) {
+    window.__openProperties?.([st.path]);
+  } else {
+    window.__openProperties?.([]);
+  }
 }
 document.getElementById("propertiesBtn")?.addEventListener("click", showProperties);
 

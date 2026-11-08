@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-media-native-available"
+description = "Enables the media_native_available command without any pre-configured scope."
+commands.allow = ["media_native_available"]
+
+[[permission]]
+identifier = "deny-media-native-available"
+description = "Denies the media_native_available command without any pre-configured scope."
+commands.deny = ["media_native_available"]

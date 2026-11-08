@@ -3,9 +3,9 @@
 #   powershell -ExecutionPolicy Bypass -File scripts/fetch-ffmpeg.ps1
 $ErrorActionPreference = "Stop"
 
-$Tag    = "autobuild-2026-09-29-13-10"
-$Name   = "ffmpeg-n9.0.2-14-gebafaee10a-win64-lgpl-shared-9.0"
-$Sha256 = "3acc157a5b9628bdc360c93a1267280c425e9d39cf689fd24cd208d3e5b5d9e2"
+$Tag    = "autobuild-2026-09-30-13-08"
+$Name   = "ffmpeg-n9.0.2-17-g2a571b6068-win64-lgpl-shared-9.0"
+$Sha256 = "7157177b8a6cb2174c1650ba8c71b363f2c78cba5330f88c4c02cf5b2b880646"
 $Url    = "https://github.com/BtbN/FFmpeg-Builds/releases/download/$Tag/$Name.zip"
 
 $Root = Split-Path -Parent $PSScriptRoot

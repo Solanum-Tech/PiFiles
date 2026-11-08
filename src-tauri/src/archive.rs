@@ -154,7 +154,8 @@ pub fn list(path: &Path, password: Option<&str>) -> Result<Listing, String> {
                 if f.encrypted() && first_encrypted.is_none() {
                     first_encrypted = Some(i);
                 }
-                entries.push(Entry { name: f.name().to_string(), size: f.size(), is_dir: f.is_dir(), encrypted: f.encrypted() });
+                let name = f.name().map(|n| n.to_string()).unwrap_or_default();
+                entries.push(Entry { name, size: f.size(), is_dir: f.is_dir(), encrypted: f.encrypted() });
             }
             // Names are readable without a password; if one was given, check it now.
             if let (Some(i), Some(pw)) = (first_encrypted, password) {
@@ -277,7 +278,7 @@ fn extract_into(path: &Path, dest: &Path, password: Option<&str>, filter: &Filte
             for i in 0..z.len() {
                 let (name, encrypted) = {
                     let f = z.by_index_raw(i).map_err(|e| e.to_string())?;
-                    (f.name().to_string(), f.encrypted())
+                    (f.name().map(|n| n.to_string()).unwrap_or_default(), f.encrypted())
                 };
                 if !wanted(&name) {
                     continue;

@@ -433,9 +433,13 @@ pub fn harden_webview(win: &tauri::WebviewWindow) {
     {
         let _ = win.with_webview(|wv| unsafe {
             use webview2_com::Microsoft::Web::WebView2::Win32::{
+                ICoreWebView2Controller2, COREWEBVIEW2_COLOR,
                 ICoreWebView2Settings3, ICoreWebView2Settings4, ICoreWebView2Settings5, ICoreWebView2Settings6,
             };
             use windows_core::Interface;
+            if let Ok(c2) = wv.controller().cast::<ICoreWebView2Controller2>() {
+                let _ = c2.SetDefaultBackgroundColor(COREWEBVIEW2_COLOR { A: 255, R: 30, G: 30, B: 30 });
+            }
             let Ok(core) = wv.controller().CoreWebView2() else { return };
             let Ok(s) = core.Settings() else { return };
             let _ = s.SetAreDevToolsEnabled(false);
@@ -563,5 +567,571 @@ pub fn rename_volume(root: &str, label: &str) -> Result<(), String> {
     {
         let _ = (letter, label);
         Err("Renaming drives isn't supported on this platform yet".into())
+    }
+}
+
+/// Checks if PiFiles is set as default file manager for directories and drives in Windows.
+pub fn is_default_file_manager() -> bool {
+    #[cfg(windows)]
+    {
+        use windows::core::PCWSTR;
+        use windows::Win32::System::Registry::{RegCloseKey, RegOpenKeyExW, RegQueryValueExW, HKEY_CURRENT_USER, KEY_READ};
+        unsafe {
+            let sub: Vec<u16> = "Software\\Classes\\Directory\\shell\\open\\command\0".encode_utf16().collect();
+            let mut key = Default::default();
+            if RegOpenKeyExW(HKEY_CURRENT_USER, PCWSTR(sub.as_ptr()), Some(0), KEY_READ, &mut key).is_ok() {
+                let mut buf = [0u16; 512];
+                let mut size = (buf.len() * 2) as u32;
+                let ok = RegQueryValueExW(key, PCWSTR::null(), None, None, Some(buf.as_mut_ptr() as *mut _), Some(&mut size)).is_ok();
+                let _ = RegCloseKey(key);
+                if ok {
+                    let s = String::from_utf16_lossy(&buf[..(size as usize / 2).saturating_sub(1)]);
+                    if let Ok(exe) = std::env::current_exe() {
+                        return s.contains(&exe.to_string_lossy().to_string());
+                    }
+                    return s.to_lowercase().contains("pifiles");
+                }
+            }
+        }
+    }
+    false
+}
+
+/// Sets or restores PiFiles as default file manager for folders and drives in Windows.
+pub fn set_default_file_manager(enable: bool) -> Result<(), String> {
+    #[cfg(windows)]
+    {
+        use windows::core::PCWSTR;
+        use windows::Win32::System::Registry::*;
+        let parents = [
+            "Software\\Classes\\Directory\\shell",
+            "Software\\Classes\\Drive\\shell",
+            "Software\\Classes\\Folder\\shell",
+        ];
+        let subkeys = [
+            "Software\\Classes\\Directory\\shell\\open\\command",
+            "Software\\Classes\\Drive\\shell\\open\\command",
+            "Software\\Classes\\Folder\\shell\\open\\command",
+        ];
+        let exe = std::env::current_exe().map_err(|e| e.to_string())?;
+        let cmd = format!("\"{}\" \"%1\"\0", exe.display());
+        let cmd_wide: Vec<u16> = cmd.encode_utf16().collect();
+        let open_verb_u16: Vec<u16> = "open\0".encode_utf16().collect();
+
+        if enable {
+            // 1. Set default verb on shell parents to "open"
+            for parent in parents {
+                let p_u16: Vec<u16> = format!("{parent}\0").encode_utf16().collect();
+                let mut key = Default::default();
+                unsafe {
+                    let r = RegCreateKeyExW(
+                        HKEY_CURRENT_USER,
+                        PCWSTR(p_u16.as_ptr()),
+                        None,
+                        PCWSTR::null(),
+                        REG_OPTION_NON_VOLATILE,
+                        KEY_WRITE,
+                        None,
+                        &mut key,
+                        None,
+                    );
+                    if r.is_ok() {
+                        let _ = RegSetValueExW(
+                            key,
+                            PCWSTR::null(),
+                            None,
+                            REG_SZ,
+                            Some(std::slice::from_raw_parts(open_verb_u16.as_ptr() as *const u8, open_verb_u16.len() * 2)),
+                        );
+                        let _ = RegCloseKey(key);
+                    }
+                }
+            }
+            // 2. Set command for open verb
+            for sub in subkeys {
+                let sub_u16: Vec<u16> = format!("{sub}\0").encode_utf16().collect();
+                let mut key = Default::default();
+                unsafe {
+                    let r = RegCreateKeyExW(
+                        HKEY_CURRENT_USER,
+                        PCWSTR(sub_u16.as_ptr()),
+                        None,
+                        PCWSTR::null(),
+                        REG_OPTION_NON_VOLATILE,
+                        KEY_WRITE,
+                        None,
+                        &mut key,
+                        None,
+                    );
+                    if r.is_ok() {
+                        let _ = RegSetValueExW(
+                            key,
+                            PCWSTR::null(),
+                            None,
+                            REG_SZ,
+                            Some(std::slice::from_raw_parts(cmd_wide.as_ptr() as *const u8, cmd_wide.len() * 2)),
+                        );
+                        let _ = RegCloseKey(key);
+                    }
+                }
+            }
+            Ok(())
+        } else {
+            for sub in subkeys {
+                let sub_u16: Vec<u16> = format!("{sub}\0").encode_utf16().collect();
+                unsafe {
+                    let _ = RegDeleteKeyW(HKEY_CURRENT_USER, PCWSTR(sub_u16.as_ptr()));
+                }
+            }
+            for parent in [
+                "Software\\Classes\\Directory\\shell\\open",
+                "Software\\Classes\\Drive\\shell\\open",
+                "Software\\Classes\\Folder\\shell\\open",
+            ] {
+                let p_u16: Vec<u16> = format!("{parent}\0").encode_utf16().collect();
+                unsafe {
+                    let _ = RegDeleteKeyW(HKEY_CURRENT_USER, PCWSTR(p_u16.as_ptr()));
+                }
+            }
+            // Delete parent shell if created
+            for parent in parents {
+                let p_u16: Vec<u16> = format!("{parent}\0").encode_utf16().collect();
+                unsafe {
+                    let _ = RegDeleteKeyW(HKEY_CURRENT_USER, PCWSTR(p_u16.as_ptr()));
+                }
+            }
+            Ok(())
+        }
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = enable;
+        Err("Setting default file manager is only supported on Windows".into())
+    }
+}
+
+pub fn open_this_pc_properties() -> Result<(), String> {
+    #[cfg(windows)]
+    {
+        let _ = hidden_command("cmd")
+            .args(&["/c", "start", "ms-settings:about"])
+            .spawn();
+        Ok(())
+    }
+    #[cfg(not(windows))]
+    {
+        Ok(())
+    }
+}
+
+pub fn get_disk_analyzer_path() -> Option<String> {
+    #[cfg(windows)]
+    {
+        let exe_names = ["PiDiskCleaner.exe", "PiDiskAnalyzer.exe", "PiCleaner.exe", "DiskAnalyzer.exe"];
+        // 1. Next to current executable
+        if let Ok(curr) = std::env::current_exe() {
+            if let Some(parent) = curr.parent() {
+                for name in exe_names {
+                    let cand = parent.join(name);
+                    if cand.is_file() {
+                        return Some(cand.to_string_lossy().into_owned());
+                    }
+                }
+            }
+        }
+        // 2. Check LOCALAPPDATA / ProgramFiles
+        if let Ok(local) = std::env::var("LOCALAPPDATA") {
+            for name in ["PiDiskCleaner", "PiDiskAnalyzer", "PiCleaner"] {
+                let cand = std::path::Path::new(&local).join("Programs").join(name).join(format!("{name}.exe"));
+                if cand.is_file() {
+                    return Some(cand.to_string_lossy().into_owned());
+                }
+            }
+        }
+        if let Ok(pf) = std::env::var("ProgramFiles") {
+            for name in ["PiDiskCleaner", "PiDiskAnalyzer", "PiCleaner"] {
+                let cand = std::path::Path::new(&pf).join(name).join(format!("{name}.exe"));
+                if cand.is_file() {
+                    return Some(cand.to_string_lossy().into_owned());
+                }
+            }
+        }
+        // 3. Check PATH via where.exe
+        for name in exe_names {
+            if let Ok(out) = hidden_command("where").arg(name).output() {
+                if out.status.success() {
+                    let text = String::from_utf8_lossy(&out.stdout);
+                    if let Some(line) = text.lines().next() {
+                        let trimmed = line.trim();
+                        if !trimmed.is_empty() && std::path::Path::new(trimmed).is_file() {
+                            return Some(trimmed.to_string());
+                        }
+                    }
+                }
+            }
+        }
+        None
+    }
+    #[cfg(not(windows))]
+    {
+        None
+    }
+}
+
+pub fn launch_disk_analyzer(path: Option<String>) -> Result<(), String> {
+    #[cfg(windows)]
+    {
+        let analyzer = get_disk_analyzer_path().ok_or_else(|| "Disk Space Analyzer is not installed".to_string())?;
+        let mut cmd = std::process::Command::new(analyzer);
+        if let Some(target) = path {
+            cmd.arg(target);
+        }
+        cmd.spawn().map_err(|e| e.to_string())?;
+        Ok(())
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = path;
+        Err("Disk Space Analyzer is only supported on Windows".into())
+    }
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
+pub struct RecycleBinItem {
+    pub name: String,
+    pub path: String,
+    pub original_path: String,
+    pub size: u64,
+    pub date_deleted: String,
+    pub is_dir: bool,
+    pub extension: String,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
+pub struct StartupStatus {
+    pub enabled: bool,
+    pub elevated: bool,
+    pub minimized: bool,
+}
+
+pub fn open_recycle_bin() -> Result<(), String> {
+    #[cfg(windows)]
+    {
+        std::process::Command::new("explorer.exe")
+            .arg("shell:RecycleBinFolder")
+            .spawn()
+            .map_err(|e| e.to_string())?;
+        Ok(())
+    }
+    #[cfg(not(windows))]
+    {
+        Err("Recycle Bin is only supported on Windows".into())
+    }
+}
+
+pub fn list_recycle_bin_items() -> Result<Vec<RecycleBinItem>, String> {
+    #[cfg(windows)]
+    {
+        let script = r#"
+            $sh = New-Object -ComObject Shell.Application
+            $rb = $sh.Namespace(0xa)
+            $items = @($rb.Items() | ForEach-Object {
+                [PSCustomObject]@{
+                    name = $_.Name
+                    path = $_.Path
+                    size = [int64]$_.Size
+                    date = $_.ModifyDate.ToString('yyyy-MM-dd HH:mm:ss')
+                    orig = $rb.GetDetailsOf($_, 1)
+                    is_dir = [bool]$_.IsFolder
+                }
+            })
+            ConvertTo-Json -InputObject $items -Compress
+        "#;
+        let mut cmd = hidden_command("powershell");
+        let out = cmd
+            .args(&["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-Command", script])
+            .output()
+            .map_err(|e| e.to_string())?;
+
+        if !out.status.success() {
+            return Ok(Vec::new());
+        }
+        let text = String::from_utf8_lossy(&out.stdout).trim().to_string();
+        if text.is_empty() || text == "null" {
+            return Ok(Vec::new());
+        }
+        #[derive(serde::Deserialize)]
+        struct RawItem {
+            name: Option<String>,
+            path: Option<String>,
+            size: Option<u64>,
+            date: Option<String>,
+            orig: Option<String>,
+            is_dir: Option<bool>,
+        }
+        let raw: Vec<RawItem> = if text.starts_with('[') {
+            serde_json::from_str(&text).unwrap_or_default()
+        } else if let Ok(single) = serde_json::from_str::<RawItem>(&text) {
+            vec![single]
+        } else {
+            Vec::new()
+        };
+
+        let items = raw.into_iter().map(|r| {
+            let name = r.name.unwrap_or_default();
+            let ext = name.split('.').last().unwrap_or("").to_lowercase();
+            let orig = r.orig.unwrap_or_default();
+            RecycleBinItem {
+                name,
+                path: r.path.unwrap_or_default(),
+                original_path: orig,
+                size: r.size.unwrap_or(0),
+                date_deleted: r.date.unwrap_or_default(),
+                is_dir: r.is_dir.unwrap_or(false),
+                extension: ext,
+            }
+        }).collect();
+        Ok(items)
+    }
+    #[cfg(not(windows))]
+    {
+        Ok(Vec::new())
+    }
+}
+
+pub fn restore_recycle_bin_items(names: Vec<String>) -> Result<(), String> {
+    #[cfg(windows)]
+    {
+        if names.is_empty() {
+            return Ok(());
+        }
+        let json_names = serde_json::to_string(&names).map_err(|e| e.to_string())?;
+        let script = format!(r#"
+            $targets = ConvertFrom-Json '{json_names}'
+            $targetSet = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::OrdinalIgnoreCase)
+            foreach ($t in $targets) {{ [void]$targetSet.Add($t) }}
+            $sh = New-Object -ComObject Shell.Application
+            $rb = $sh.Namespace(0xa)
+            foreach ($item in $rb.Items()) {{
+                if ($targetSet.Contains($item.Name) -or $targetSet.Contains($item.Path)) {{
+                    $verb = $item.Verbs() | Where-Object {{ $_.Name -replace '&','' -match 'Restore|Undelete' }}
+                    if ($verb) {{ $verb.DoIt() }}
+                }}
+            }}
+        "#);
+        let mut cmd = hidden_command("powershell");
+        let _ = cmd
+            .args(&["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-Command", &script])
+            .output()
+            .map_err(|e| e.to_string())?;
+        Ok(())
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = names;
+        Ok(())
+    }
+}
+
+pub fn empty_recycle_bin() -> Result<(), String> {
+    #[cfg(windows)]
+    {
+        use windows::Win32::UI::Shell::SHEmptyRecycleBinW;
+        unsafe {
+            let _ = SHEmptyRecycleBinW(None, None, 7);
+        }
+        Ok(())
+    }
+    #[cfg(not(windows))]
+    {
+        Ok(())
+    }
+}
+
+pub fn get_startup_status() -> Result<StartupStatus, String> {
+    #[cfg(windows)]
+    {
+        let mut cmd = hidden_command("schtasks");
+        let output = cmd.args(&["/Query", "/TN", "PiFilesStartup", "/FO", "LIST"]).output();
+        if let Ok(out) = output {
+            if out.status.success() {
+                let s = String::from_utf8_lossy(&out.stdout);
+                let minimized = s.contains("--background") || s.contains("--minimized");
+                return Ok(StartupStatus { enabled: true, elevated: true, minimized });
+            }
+        }
+        use windows::Win32::System::Registry::{RegOpenKeyExW, RegQueryValueExW, HKEY, HKEY_CURRENT_USER, KEY_READ};
+        use windows::core::w;
+        unsafe {
+            let mut key = HKEY::default();
+            if RegOpenKeyExW(HKEY_CURRENT_USER, w!(r"Software\Microsoft\Windows\CurrentVersion\Run"), None, KEY_READ, &mut key).is_ok() {
+                let mut buf = [0u16; 512];
+                let mut size = (buf.len() * 2) as u32;
+                let res = RegQueryValueExW(key, w!("PiFiles"), None, None, Some(buf.as_mut_ptr() as *mut _), Some(&mut size));
+                let _ = windows::Win32::System::Registry::RegCloseKey(key);
+                if res.is_ok() {
+                    let val = String::from_utf16_lossy(&buf[..(size as usize / 2).saturating_sub(1)]);
+                    let minimized = val.contains("--background") || val.contains("--minimized");
+                    return Ok(StartupStatus { enabled: true, elevated: false, minimized });
+                }
+            }
+        }
+        Ok(StartupStatus { enabled: false, elevated: false, minimized: true })
+    }
+    #[cfg(not(windows))]
+    {
+        Ok(StartupStatus { enabled: false, elevated: false, minimized: true })
+    }
+}
+
+pub fn set_startup_status(enabled: bool, elevated: bool, minimized: bool) -> Result<(), String> {
+    #[cfg(windows)]
+    {
+        let current_exe = std::env::current_exe().map_err(|e| e.to_string())?;
+        let exe_path = current_exe.to_string_lossy().to_string();
+        let flag = if minimized { " --background" } else { "" };
+        let cmd = format!("\"{}\"{}", exe_path, flag);
+
+        let mut del_task = hidden_command("schtasks");
+        let _ = del_task.args(&["/Delete", "/TN", "PiFilesStartup", "/F"]).output();
+
+        use windows::Win32::System::Registry::{RegOpenKeyExW, RegSetValueExW, RegDeleteValueW, HKEY, HKEY_CURRENT_USER, KEY_SET_VALUE, REG_SZ};
+        use windows::core::{w, HSTRING};
+        unsafe {
+            let mut key = HKEY::default();
+            if RegOpenKeyExW(HKEY_CURRENT_USER, w!(r"Software\Microsoft\Windows\CurrentVersion\Run"), None, KEY_SET_VALUE, &mut key).is_ok() {
+                let _ = RegDeleteValueW(key, w!("PiFiles"));
+                let _ = windows::Win32::System::Registry::RegCloseKey(key);
+            }
+        }
+
+        if !enabled {
+            return Ok(());
+        }
+
+        if elevated {
+            let mut create_task = hidden_command("schtasks");
+            let status = create_task
+                .args(&["/Create", "/TN", "PiFilesStartup", "/TR", &cmd, "/SC", "ONLOGON", "/RL", "HIGHEST", "/F"])
+                .status()
+                .map_err(|e| e.to_string())?;
+            if !status.success() {
+                return Err("Failed to create elevated startup task. Ensure Administrator privileges or try standard startup.".into());
+            }
+        } else {
+            unsafe {
+                let mut key = HKEY::default();
+                if RegOpenKeyExW(HKEY_CURRENT_USER, w!(r"Software\Microsoft\Windows\CurrentVersion\Run"), None, KEY_SET_VALUE, &mut key).is_ok() {
+                    let cmd_w = HSTRING::from(cmd.as_str());
+                    let bytes = std::slice::from_raw_parts(cmd_w.as_ptr() as *const u8, (cmd_w.len() + 1) * 2);
+                    let _ = RegSetValueExW(key, w!("PiFiles"), None, REG_SZ, Some(bytes));
+                    let _ = windows::Win32::System::Registry::RegCloseKey(key);
+                }
+            }
+        }
+        Ok(())
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = (enabled, elevated, minimized);
+        Ok(())
+    }
+}
+
+
+
+
+#[cfg(windows)]
+pub fn set_app_user_model_id() {
+    use windows::core::w;
+    use windows::Win32::UI::Shell::SetCurrentProcessExplicitAppUserModelID;
+    unsafe {
+        let _ = SetCurrentProcessExplicitAppUserModelID(w!("com.pifiles.app"));
+    }
+}
+#[cfg(not(windows))]
+pub fn set_app_user_model_id() {}
+
+#[cfg(windows)]
+pub fn apply_hwnd_icon(hwnd: windows::Win32::Foundation::HWND) {
+    use windows::Win32::Foundation::{HINSTANCE, WPARAM, LPARAM};
+    use windows::Win32::UI::WindowsAndMessaging::*;
+    use windows::core::PCWSTR;
+
+    unsafe {
+        let hinstance = windows::Win32::System::LibraryLoader::GetModuleHandleW(None)
+            .ok()
+            .map(|h| HINSTANCE(h.0));
+        let cx_big = GetSystemMetrics(SM_CXICON);
+        let cy_big = GetSystemMetrics(SM_CYICON);
+        let cx_sm = GetSystemMetrics(SM_CXSMICON);
+        let cy_sm = GetSystemMetrics(SM_CYSMICON);
+
+        let mut hbig = LoadImageW(
+            hinstance,
+            PCWSTR(32512 as *const u16),
+            IMAGE_ICON,
+            cx_big,
+            cy_big,
+            LR_DEFAULTCOLOR | LR_SHARED,
+        ).ok().map(|h| HICON(h.0));
+
+        if hbig.is_none() {
+            hbig = LoadImageW(
+                hinstance,
+                PCWSTR(1 as *const u16),
+                IMAGE_ICON,
+                cx_big,
+                cy_big,
+                LR_DEFAULTCOLOR | LR_SHARED,
+            ).ok().map(|h| HICON(h.0));
+        }
+
+        let mut hsm = LoadImageW(
+            hinstance,
+            PCWSTR(32512 as *const u16),
+            IMAGE_ICON,
+            cx_sm,
+            cy_sm,
+            LR_DEFAULTCOLOR | LR_SHARED,
+        ).ok().map(|h| HICON(h.0));
+
+        if hsm.is_none() {
+            hsm = LoadImageW(
+                hinstance,
+                PCWSTR(1 as *const u16),
+                IMAGE_ICON,
+                cx_sm,
+                cy_sm,
+                LR_DEFAULTCOLOR | LR_SHARED,
+            ).ok().map(|h| HICON(h.0));
+        }
+
+        if let Some(h) = hbig {
+            let _ = SendMessageW(hwnd, WM_SETICON, Some(WPARAM(ICON_BIG as usize)), Some(LPARAM(h.0 as isize)));
+            #[cfg(target_pointer_width = "64")]
+            let _ = SetClassLongPtrW(hwnd, GCLP_HICON, h.0 as isize);
+        }
+        if let Some(h) = hsm {
+            let _ = SendMessageW(hwnd, WM_SETICON, Some(WPARAM(ICON_SMALL as usize)), Some(LPARAM(h.0 as isize)));
+            #[cfg(target_pointer_width = "64")]
+            let _ = SetClassLongPtrW(hwnd, GCLP_HICONSM, h.0 as isize);
+        }
+    }
+}
+#[cfg(not(windows))]
+pub fn apply_hwnd_icon(_hwnd: isize) {}
+
+pub fn apply_window_icon(win: &tauri::WebviewWindow) {
+    #[cfg(windows)]
+    {
+        use windows::Win32::Foundation::HWND;
+        if let Ok(h) = win.hwnd() {
+            apply_hwnd_icon(HWND(h.0 as *mut std::ffi::c_void));
+        }
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = win;
     }
 }

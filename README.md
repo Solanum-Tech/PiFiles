@@ -41,14 +41,14 @@ Traditional file managers were architected when storage was small, search meant 
 
 ## Downloads & Installation
 
-### Latest Stable Release: `v0.2.0`
+### Latest Stable Release: `v0.2.1`
 
 Download official releases directly from the [Releases Page](https://github.com/Solanum-Tech/PiFiles/releases/latest):
 
 | Platform | Package | Download Link |
 |:---|:---|:---|
-| **Windows 10 / 11** | Installer (`.exe`) | [**Download PiFiles-setup.exe**](https://github.com/Solanum-Tech/PiFiles/releases/latest/download/PiFiles_0.2.0_x64-setup.exe) |
-| **Windows 10 / 11** | Enterprise Package (`.msi`) | [**Download PiFiles.msi**](https://github.com/Solanum-Tech/PiFiles/releases/latest/download/PiFiles_0.2.0_x64_en-US.msi) |
+| **Windows 10 / 11** | Installer (`.exe`) | [**Download PiFiles-setup.exe**](https://github.com/Solanum-Tech/PiFiles/releases/latest/download/PiFiles_0.2.1_x64-setup.exe) |
+| **Windows 10 / 11** | Enterprise Package (`.msi`) | [**Download PiFiles.msi**](https://github.com/Solanum-Tech/PiFiles/releases/latest/download/PiFiles_0.2.1_x64_en-US.msi) |
 | **Windows Package Manager** | `winget` | `winget install SolanumTech.PiFiles` |
 | **macOS** (11+) | Disk Image (`.dmg`) | [**Download for macOS**](https://github.com/Solanum-Tech/PiFiles/releases/latest) |
 | **Linux** | AppImage / Debian (`.deb`) | [**Download for Linux**](https://github.com/Solanum-Tech/PiFiles/releases/latest) |

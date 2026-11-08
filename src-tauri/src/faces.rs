@@ -110,6 +110,12 @@ pub fn set_cached_people(groups: Vec<MediaGroup>) {
     save_face_cache(&groups);
 }
 
+static SCAN_CANCEL: AtomicBool = AtomicBool::new(false);
+
+pub fn stop_scan() {
+    SCAN_CANCEL.store(true, Ordering::SeqCst);
+}
+
 pub fn is_scanning() -> bool {
     SCANNING.load(Ordering::Relaxed)
 }
@@ -814,7 +820,8 @@ fn run_scan(walk: bool) {
     eprintln!("[faces] {} photos: {} indexed, {} to analyse", todo.len() + done.len(), done.len(), todo.len());
 
     set_phase("analyzing");
-    let threads = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(2).saturating_sub(1).clamp(1, 8);
+    // Strictly cap to 1 worker thread (or 2 in fast mode) to keep CPU below 10%
+    let threads = if is_fast_scan_mode() { 2 } else { 1 };
     let pool = rayon::ThreadPoolBuilder::new()
         .num_threads(threads)
         .thread_name(|i| format!("face-scan-{i}"))
@@ -828,9 +835,12 @@ fn run_scan(walk: bool) {
     let mut new_faces = 0usize;
     let mut i = 0;
     while i < todo.len() {
-        // Eco: one core with a pause between photos. Fast: every core but one.
+        if SCAN_CANCEL.load(Ordering::Relaxed) {
+            eprintln!("[faces] scan cancelled by user or idle watchdog");
+            break;
+        }
         let fast = is_fast_scan_mode();
-        let end = (i + if fast { threads * 2 } else { 1 }).min(todo.len());
+        let end = (i + 1).min(todo.len());
         let results: Vec<FileRecord> = pool.install(|| todo[i..end].par_iter().map(analyze_candidate).collect());
         {
             let mut idx = get_index().write().unwrap();
@@ -841,8 +851,10 @@ fn run_scan(walk: bool) {
         }
         SCAN_PROGRESS.fetch_add(end - i, Ordering::Relaxed);
         i = end;
-        if !fast {
-            std::thread::sleep(Duration::from_millis(60));
+        // Throttle to keep CPU usage minimal (< 10%)
+        std::thread::sleep(Duration::from_millis(if fast { 40 } else { 120 }));
+        if i % 20 == 0 {
+            crate::perf::trim_memory();
         }
         // Stream results; re-cluster less often as the library grows.
         let total_faces = get_index().read().unwrap().face_count();
@@ -889,6 +901,7 @@ pub fn spawn_full_machine_scan(force: bool) {
     if SCANNING.compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst).is_err() {
         return;
     }
+    SCAN_CANCEL.store(false, Ordering::SeqCst);
     if force {
         set_fast_scan_mode(true);
     }

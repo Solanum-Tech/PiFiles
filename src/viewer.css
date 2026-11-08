@@ -99,7 +99,7 @@
 .pv-seek { position: relative; height: 18px; cursor: pointer; --p: 0; --b: 0; }
 .pv-seek::before, .pv-seek-buf, .pv-seek-fill { content: ""; position: absolute; left: 0; top: 7px; height: 4px; border-radius: 2px; transition: height var(--dur-1), top var(--dur-1); }
 .pv-seek::before { right: 0; background: rgba(255, 255, 255, .25); }
-.pv-seek-buf { width: calc(var(--b) * 100%); background: rgba(255, 255, 255, .45); }
+.pv-seek-buf { display: none; }
 .pv-seek-fill { width: calc(var(--p) * 100%); background: var(--accent); }
 .pv-seek:hover::before, .pv-seek:hover .pv-seek-buf, .pv-seek:hover .pv-seek-fill { top: 6px; height: 6px; }
 .pv-seek-thumb { position: absolute; top: 3px; left: calc(var(--p) * 100%); width: 12px; height: 12px; margin-left: -6px; border-radius: 50%; background: #fff; transform: scale(0); transition: transform var(--dur-2) var(--ease-spring); }
@@ -144,3 +144,4 @@
   contain: none !important; will-change: auto !important; perspective: none !important; animation: none !important; transition: none !important;
 }
 :root.pf-player-fs .viewer-backdrop, :root.pf-player-fs .pf-settings, :root.pf-player-fs .toast { visibility: hidden; }
+

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-launch-disk-analyzer"
+description = "Enables the launch_disk_analyzer command without any pre-configured scope."
+commands.allow = ["launch_disk_analyzer"]
+
+[[permission]]
+identifier = "deny-launch-disk-analyzer"
+description = "Denies the launch_disk_analyzer command without any pre-configured scope."
+commands.deny = ["launch_disk_analyzer"]

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-open-this-pc-properties"
+description = "Enables the open_this_pc_properties command without any pre-configured scope."
+commands.allow = ["open_this_pc_properties"]
+
+[[permission]]
+identifier = "deny-open-this-pc-properties"
+description = "Denies the open_this_pc_properties command without any pre-configured scope."
+commands.deny = ["open_this_pc_properties"]

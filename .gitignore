@@ -3,6 +3,8 @@ node_modules/
 # FFmpeg runtime (~150 MB) - fetched by scripts/fetch-ffmpeg.ps1
 src-tauri/ffmpeg/*.exe
 src-tauri/ffmpeg/*.dll
+# mpv native runtime - fetched by scripts/fetch-mpv.ps1
+src-tauri/mpv/
 
 # Markdown: only the README is published (progress notes, docs and other .md files stay local).
 # GitHub's own configuration (.github: PR template, security policy) is kept.
@@ -16,6 +18,8 @@ src-tauri/ffmpeg/*.dll
 *.code-workspace
 
 # AI assistant files and settings
+.agents/
+.agent/
 .claude/
 CLAUDE.md
 CLAUDE.local.md
@@ -39,6 +43,19 @@ GEMINI.md
 .clinerules
 .kiro/
 .amazonq/
+
+# Python and test scratch
+*.py
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+tests/
+
+# Local demos and store packaging assets
+src/_demo*
+store-assets/
 
 # Local backups and leftovers (never published)
 *.bak

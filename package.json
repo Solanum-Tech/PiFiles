@@ -11,7 +11,7 @@
     "icons": "node scripts/build-icons.mjs"
   },
   "devDependencies": {
-    "@fluentui/svg-icons": "^1.1.343",
+    "@fluentui/svg-icons": "^1.1.345",
     "@tauri-apps/cli": "^2"
   }
 }

@@ -18,12 +18,46 @@
   const I = n => (window.PiIcons ? PiIcons.ui(n) : "");
   const toast = m => window.toast?.(m);
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-  const ADJ = [
-    ["exposure", "Exposure", -100, 100], ["contrast", "Contrast", -100, 100], ["highlights", "Highlights", -100, 100],
-    ["saturation", "Saturation", -100, 100], ["warmth", "Warmth", -100, 100], ["tint", "Tint", -100, 100],
-    ["vignette", "Vignette", 0, 100],
+  const ADJ_LIGHT = [
+    ["exposure", "Exposure", -100, 100],
+    ["contrast", "Contrast", -100, 100],
+    ["highlights", "Highlights", -100, 100],
+    ["shadows", "Shadows", -100, 100],
   ];
-  const blank = () => ({ rot: 0, flipH: false, flipV: false, crop: null, adj: Object.fromEntries(ADJ.map(a => [a[0], 0])), faceLight: null });
+
+  const ADJ_COLOR = [
+    ["warmth", "Warmth", -100, 100],
+    ["tint", "Tint", -100, 100],
+    ["vibrance", "Vibrance", -100, 100],
+    ["saturation", "Saturation", -100, 100],
+  ];
+
+  const ADJ_DETAIL = [
+    ["structure", "Structure / Clarity", -100, 100],
+    ["sharpness", "Sharpness", 0, 100],
+    ["vignette", "Vignette", 0, 100],
+
+    ["grain", "Film Grain", 0, 100],
+  ];
+
+  const ADJ = [...ADJ_LIGHT, ...ADJ_COLOR, ...ADJ_DETAIL];
+  const PRESETS = [
+    { id: "none", name: "Original", desc: "No style applied" },
+    { id: "cinematic", name: "Cinematic", desc: "Teal shadows & warm highlights", adj: { contrast: 15, warmth: 15, tint: -8, vibrance: 20 }, tintColor: "#006688", highlightColor: "#ffaa44" },
+    { id: "golden", name: "Golden Hour", desc: "Radiant sunset amber glow", adj: { exposure: 6, warmth: 35, tint: 8, highlights: 15, vibrance: 25 }, highlightColor: "#ff9922" },
+    { id: "moody", name: "Moody Dark", desc: "Deep contrast & dark drama", adj: { exposure: -10, contrast: 28, saturation: -25, structure: 35, vignette: 40 } },
+    { id: "portrait", name: "Clean Portrait", desc: "Soft skin glow & gentle contrast", adj: { exposure: 8, contrast: -6, highlights: -12, shadows: 16, warmth: 10, vibrance: 12 } },
+    { id: "vintage", name: "Vintage 35mm", desc: "Retro matte film warmth", adj: { contrast: -12, warmth: 22, shadows: 20, grain: 35, vignette: 25 }, tintColor: "#e6c280" },
+    { id: "noir", name: "Noir B&W", desc: "Dramatic monochrome", adj: { saturation: -100, contrast: 30, structure: 30, exposure: 5 } },
+    { id: "cyberpunk", name: "Cyberpunk", desc: "High vibrance magenta & cyan", adj: { contrast: 20, vibrance: 55, saturation: 20 }, tintColor: "#00eeee", highlightColor: "#ee0088" },
+    { id: "landscape", name: "Vivid Nature", desc: "Rich foliage & polarized sky", adj: { contrast: 15, saturation: 18, vibrance: 32, structure: 25, highlights: -15, shadows: 15 } },
+  ];
+
+
+
+
+
+  const blank = () => ({ rot: 0, flipH: false, flipV: false, crop: null, adj: Object.fromEntries(ADJ.map(a => [a[0], 0])), preset: "none", presetIntensity: 80, faceLight: null });
   const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
   const extOf = p => (String(p).split(".").pop() || "").toLowerCase();
   const NATIVE_SAVE = { jpg: "image/jpeg", jpeg: "image/jpeg", jfif: "image/jpeg", png: "image/png", webp: "image/webp" };
@@ -74,9 +108,9 @@
           ${e ? `<span class="ie-sep"></span>
           <div class="ie-grp">${btn("rot-l", "⟲", "Rotate left (Shift+R)")}${btn("rot-r", "⟳", "Rotate right (R)")}${btn("flip-h", "⇋", "Flip horizontal")}${btn("flip-v", "⇵", "Flip vertical")}</div>
           <span class="ie-sep"></span>
-          <div class="ie-grp">${btn("crop", "⛶ <span>Crop</span>", "Crop (C)", 'class="ie-b wide"')}${btn("adjust", "☀ <span>Adjust</span>", "Light and colour", 'class="ie-b wide"')}${btn("ai", "✦ <span>AI tools</span>", "On-device AI tools", 'class="ie-b wide"')}</div>
+          <div class="ie-grp">${btn("crop", "⛶ <span>Crop</span>", "Crop (C)", 'class="ie-b wide"')}${btn("adjust", "☀ <span>Light & Color</span>", "Light, exposure & color tone", 'class="ie-b wide"')}${btn("filters", "🎨 <span>Filters</span>", "Luminar Neo inspired filters", 'class="ie-b wide"')}${btn("details", "◈ <span>Detail</span>", "Structure, sharpness & vignette", 'class="ie-b wide"')}${btn("ai", "✦ <span>AI tools</span>", "On-device AI tools", 'class="ie-b wide"')}</div>
           <span class="ie-sep"></span>
-          <div class="ie-grp">${btn("undo", I("undo") || "↶", "Undo (Ctrl+Z)", "disabled")}${btn("redo", "↷", "Redo (Ctrl+Y)", "disabled")}${btn("reset", "Reset", "Discard all edits", 'class="ie-b wide" disabled')}</div>` : ""}
+          <div class="ie-grp">${btn("compare", "👁 <span>Compare</span>", "Hold or press \\ to compare with original", 'class="ie-b wide"')}${btn("undo", I("undo") || "↶", "Undo (Ctrl+Z)", "disabled")}${btn("redo", "↷", "Redo (Ctrl+Y)", "disabled")}${btn("reset", "Reset", "Discard all edits", 'class="ie-b wide" disabled')}</div>` : ""}
           <span class="ie-fill"></span>
           ${e ? `<button class="ie-b wide" data-ie="history" title="Earlier versions of this file">${I("history")} <span>File history</span></button>
           <div class="ie-grp"><button class="pf-btn" data-ie="save-copy" disabled title="Save the edited picture as a new file">Save as copy</button><button class="pf-btn primary" data-ie="save" disabled title="Save (Ctrl+S). The original is kept in File history.">Save</button></div>` : ""}
@@ -94,17 +128,39 @@
       this.$ = s => this.host.querySelector(s);
       this.stage = this.$(".ie-stage"); this.layer = this.$(".ie-layer"); this.side = this.$(".ie-side");
       this.cropEl = this.$(".ie-crop"); this.cropBox = this.$(".ie-crop-box");
+      const cmp = this.$("[data-ie=compare]");
+      if (cmp) {
+        const startCmp = ev => {
+          ev.preventDefault();
+          this.comparing = true;
+          cmp.classList.add("on");
+          this.refresh();
+        };
+        const stopCmp = () => {
+          if (!this.comparing) return;
+          this.comparing = false;
+          cmp.classList.remove("on");
+          this.refresh();
+        };
+        cmp.addEventListener("pointerdown", startCmp);
+        cmp.addEventListener("pointerup", stopCmp);
+        cmp.addEventListener("pointerleave", stopCmp);
+        cmp.addEventListener("pointercancel", stopCmp);
+      }
       this.onClick = ev => this.click(ev);
       this.host.addEventListener("click", this.onClick);
       this.bindStage();
       this.onKey = ev => this.key(ev);
       document.addEventListener("keydown", this.onKey, true);
+      this.onKeyUp = ev => this.keyUp(ev);
+      document.addEventListener("keyup", this.onKeyUp, true);
       this.ro = new ResizeObserver(() => { if (this.fitted) this.fit(); else this.applyView(); if (this.mode === "crop") this.drawCrop(); });
       this.ro.observe(this.stage);
     }
     hidePh() { this.$(".ie-ph")?.remove(); }
     destroy() {
       document.removeEventListener("keydown", this.onKey, true);
+      document.removeEventListener("keyup", this.onKeyUp, true);
       this.host.removeEventListener("click", this.onClick);
       this.ro?.disconnect();
       if (this.blobUrl) URL.revokeObjectURL(this.blobUrl);
@@ -159,6 +215,16 @@
       if (a.warmth) overlay(a.warmth > 0 ? "rgb(255,138,40)" : "rgb(40,120,255)", Math.abs(a.warmth) / 260, "soft-light");
       if (a.tint) overlay(a.tint > 0 ? "rgb(230,40,200)" : "rgb(40,220,90)", Math.abs(a.tint) / 320, "soft-light");
       if (a.highlights) overlay(a.highlights > 0 ? "#fff" : "#000", Math.abs(a.highlights) / 400, a.highlights > 0 ? "screen" : "multiply");
+      if (a.shadows) overlay(a.shadows > 0 ? "#fff" : "#000", Math.abs(a.shadows) / 380, a.shadows > 0 ? "soft-light" : "multiply");
+      if (a.vibrance) overlay(a.vibrance > 0 ? "rgb(255,100,100)" : "rgb(128,128,128)", Math.abs(a.vibrance) / 440, a.vibrance > 0 ? "soft-light" : "color");
+      if (E.preset && E.preset !== "none") {
+        const pDef = PRESETS.find(x => x.id === E.preset);
+        if (pDef) {
+          const pInt = (E.presetIntensity ?? 80) / 100;
+          if (pDef.tintColor) overlay(pDef.tintColor, 0.28 * pInt, "soft-light");
+          if (pDef.highlightColor) overlay(pDef.highlightColor, 0.22 * pInt, "screen");
+        }
+      }
       if (E.faceLight?.faces?.length) {
         u.globalCompositeOperation = "soft-light";
         for (const [fx, fy, fw, fh] of E.faceLight.faces) {
@@ -190,13 +256,57 @@
         g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, `rgba(0,0,0,${(a.vignette / 100 * 0.75).toFixed(3)})`);
         c.fillStyle = g; c.fillRect(0, 0, w, h);
       }
+      // 5. structure & sharpness
+      if (a.sharpness || a.structure) {
+        const c = C.getContext("2d"), w = C.width, h = C.height;
+        const k = (Math.max(0, a.sharpness || 0) / 100) * 0.45 + ((a.structure || 0) / 100) * 0.25;
+        if (Math.abs(k) > 0.02 && w * h <= 2560 * 1440) {
+          try {
+            const srcId = c.getImageData(0, 0, w, h), src = srcId.data;
+            const dstId = c.createImageData(w, h), dst = dstId.data;
+            for (let y = 1; y < h - 1; y++) {
+              for (let x = 1; x < w - 1; x++) {
+                const idx = (y * w + x) * 4;
+                for (let ch = 0; ch < 3; ch++) {
+                  const center = src[idx + ch];
+                  const up = src[((y - 1) * w + x) * 4 + ch];
+                  const down = src[((y + 1) * w + x) * 4 + ch];
+                  const left = src[(y * w + (x - 1)) * 4 + ch];
+                  const right = src[(y * w + (x + 1)) * 4 + ch];
+                  const laplacian = 4 * center - up - down - left - right;
+                  dst[idx + ch] = clamp(center + k * laplacian, 0, 255);
+                }
+                dst[idx + 3] = src[idx + 3];
+              }
+            }
+            c.putImageData(dstId, 0, 0);
+          } catch {}
+        }
+      }
+      // 6. grain
+      if (a.grain) {
+        const c = C.getContext("2d"), w = C.width, h = C.height;
+        if (w * h <= 2560 * 1440) {
+          try {
+            const id = c.getImageData(0, 0, w, h), d = id.data;
+            const amt = (a.grain / 100) * 25;
+            for (let i = 0; i < d.length; i += 4) {
+              const n = (Math.random() - 0.5) * amt;
+              d[i] = clamp(d[i] + n, 0, 255);
+              d[i+1] = clamp(d[i+1] + n, 0, 255);
+              d[i+2] = clamp(d[i+2] + n, 0, 255);
+            }
+            c.putImageData(id, 0, 0);
+          } catch {}
+        }
+      }
       return C;
     }
     /** Shows the original (<img>, sharpest) when unedited, else a screen-resolution render. */
     refresh(first) {
       if (!this.W0) return;
       const E = this.mode === "crop" ? { ...this.E, crop: null } : this.E;
-      const unedited = same(E, blank());
+      const unedited = same(E, blank()) || this.comparing;
       let el;
       if (unedited) { el = this.img; el.className = "ie-pic"; el.draggable = false; }
       else {
@@ -210,7 +320,7 @@
       if (first || this.fitted) this.fit(); else this.applyView();
       this.updateBar();
       const info = this.$("[data-ie-info]");
-      if (info) info.textContent = `${this.dims().w} × ${this.dims().h}${this.dirty() ? " · edited" : ""}`;
+      if (info) info.textContent = `${this.dims().w} × ${this.dims().h}${this.dirty() ? " · edited" : ""}${this.comparing ? " (Original)" : ""}`;
     }
 
     // ------------------------------------------------------------------ zoom / pan
@@ -287,7 +397,7 @@
     openPanel(name) {
       if (this.mode === "crop" && name !== "crop") this.endCrop(false);
       this.panel = this.panel === name ? null : name;
-      this.host.querySelectorAll("[data-ie=adjust],[data-ie=ai],[data-ie=crop]").forEach(b => b.classList.toggle("on", b.dataset.ie === this.panel));
+      this.host.querySelectorAll("[data-ie=adjust],[data-ie=filters],[data-ie=details],[data-ie=ai],[data-ie=crop]").forEach(b => b.classList.toggle("on", b.dataset.ie === this.panel));
       this.renderPanel();
       requestAnimationFrame(() => (this.fitted ? this.fit() : this.applyView()));
     }
@@ -295,27 +405,81 @@
       const p = this.panel, side = this.side;
       side.classList.toggle("hidden", !p);
       if (!p) { side.innerHTML = ""; return; }
-      if (p === "adjust") {
-        side.innerHTML = `<h4>Light & colour</h4>${ADJ.map(([k, l, mn, mx]) => `<label class="ie-sl"><span>${l}<b data-v="${k}">${this.E.adj[k]}</b></span><input type="range" min="${mn}" max="${mx}" value="${this.E.adj[k]}" data-adj="${k}"></label>`).join("")}
-          <div class="ie-row"><button class="pf-btn small" data-ie="adj-reset">Reset light & colour</button></div>`;
-        side.querySelectorAll("[data-adj]").forEach(inp => {
+
+      const bindSliders = (container) => {
+        container.querySelectorAll("[data-adj]").forEach(inp => {
           let base = null;
+          const k = inp.dataset.adj;
           inp.addEventListener("input", () => {
-            if (!base) base = structuredClone(this.E); // state before this drag / key press
-            const k = inp.dataset.adj; side.querySelector(`[data-v="${k}"]`).textContent = inp.value;
-            this.E = structuredClone(this.E); this.E.adj[k] = Number(inp.value);
-            cancelAnimationFrame(this._raf); this._raf = requestAnimationFrame(() => this.refresh());
+            if (!base) base = structuredClone(this.E);
+            const val = Number(inp.value);
+            const vEl = container.querySelector(`[data-v="${k}"]`);
+            if (vEl) vEl.textContent = val > 0 ? `+${val}` : `${val}`;
+            this.E = structuredClone(this.E);
+            this.E.adj[k] = val;
+            cancelAnimationFrame(this._raf);
+            this._raf = requestAnimationFrame(() => this.refresh());
           });
-          inp.addEventListener("change", () => { // one undo step per drag
+          inp.addEventListener("change", () => {
             const before = base; base = null;
             if (before && !same(before, this.E)) { this.undo.push(before); this.redo = []; }
             this.refresh();
           });
+          inp.closest(".ie-sl")?.querySelector("span")?.addEventListener("dblclick", () => {
+            if (this.E.adj[k] === 0) return;
+            this.edit(n => { n.adj[k] = 0; }, `Reset ${k}`);
+            this.renderPanel();
+          });
         });
+      };
+
+      if (p === "adjust") {
+        side.innerHTML = `<h4>Light & Color</h4>
+          <div class="ie-sec-title">Light</div>
+          ${ADJ_LIGHT.map(([k, l, mn, mx]) => `<label class="ie-sl" title="Double click to reset"><span>${l}<b data-v="${k}">${this.E.adj[k] > 0 ? "+" + this.E.adj[k] : this.E.adj[k]}</b></span><input type="range" min="${mn}" max="${mx}" value="${this.E.adj[k]}" data-adj="${k}"></label>`).join("")}
+          <div class="ie-sec-title">Color Tone</div>
+          ${ADJ_COLOR.map(([k, l, mn, mx]) => `<label class="ie-sl" title="Double click to reset"><span>${l}<b data-v="${k}">${this.E.adj[k] > 0 ? "+" + this.E.adj[k] : this.E.adj[k]}</b></span><input type="range" min="${mn}" max="${mx}" value="${this.E.adj[k]}" data-adj="${k}"></label>`).join("")}
+          <div class="ie-row"><button class="pf-btn small" data-ie="adj-reset">Reset light & color</button></div>`;
+        bindSliders(side);
+      } else if (p === "filters") {
+        const curPreset = this.E.preset || "none";
+        const curInt = this.E.presetIntensity ?? 80;
+        side.innerHTML = `<h4>Filters & Presets <small>Luminar Neo style</small></h4>
+          <label class="ie-sl" style="margin-bottom:6px"><span>Filter Strength<b data-v="presetIntensity">${curInt}%</b></span><input type="range" min="0" max="100" value="${curInt}" data-preset-intensity></label>
+          <div class="ie-sec-title">Presets</div>
+          <div class="ie-preset-grid">
+            ${PRESETS.map(pr => `<button class="ie-preset-card ${curPreset === pr.id ? "on" : ""}" data-preset="${pr.id}"><b>${esc(pr.name)}</b><span>${esc(pr.desc)}</span></button>`).join("")}
+          </div>
+          <div class="ie-row" style="margin-top:8px"><button class="pf-btn small" data-ie="filter-reset">Reset filters</button></div>`;
+        const intInp = side.querySelector("[data-preset-intensity]");
+        if (intInp) {
+          let base = null;
+          intInp.addEventListener("input", () => {
+            if (!base) base = structuredClone(this.E);
+            const val = Number(intInp.value);
+            const vEl = side.querySelector("[data-v=presetIntensity]");
+            if (vEl) vEl.textContent = `${val}%`;
+            this.E = structuredClone(this.E);
+            this.E.presetIntensity = val;
+            cancelAnimationFrame(this._raf);
+            this._raf = requestAnimationFrame(() => this.refresh());
+          });
+          intInp.addEventListener("change", () => {
+            const before = base; base = null;
+            if (before && !same(before, this.E)) { this.undo.push(before); this.redo = []; }
+            this.refresh();
+          });
+        }
+      } else if (p === "details") {
+        side.innerHTML = `<h4>Detail & Effects</h4>
+          <div class="ie-sec-title">Structure & Texture</div>
+          ${ADJ_DETAIL.map(([k, l, mn, mx]) => `<label class="ie-sl" title="Double click to reset"><span>${l}<b data-v="${k}">${this.E.adj[k] > 0 ? "+" + this.E.adj[k] : this.E.adj[k]}</b></span><input type="range" min="${mn}" max="${mx}" value="${this.E.adj[k]}" data-adj="${k}"></label>`).join("")}
+          <div class="ie-row"><button class="pf-btn small" data-ie="detail-reset">Reset detail</button></div>`;
+        bindSliders(side);
       } else if (p === "ai") {
         const fl = this.E.faceLight;
         side.innerHTML = `<h4>AI tools <small>run on this computer</small></h4>
-          <button class="ie-tool" data-ie="ai-auto"><b>✦ Auto enhance</b><span>Analyses brightness, contrast and colour cast, then sets the sliders. Fine-tune them in Adjust.</span></button>
+          <button class="ie-tool" data-ie="ai-auto"><b>✦ Auto enhance</b><span>Analyses brightness, contrast and colour cast, then sets the sliders. Fine-tune them in Light & Color.</span></button>
           <button class="ie-tool" data-ie="ai-portrait"><b>☺ Portrait light</b><span>Finds faces with the on-device face detector and gently lifts them.</span></button>
           ${fl ? `<label class="ie-sl"><span>Portrait light<b data-v="fl">${fl.amount}</b></span><input type="range" min="0" max="100" value="${fl.amount}" data-fl></label>` : ""}
           <button class="ie-tool" data-ie="ai-smartcrop"><b>⛶ Smart crop</b><span>Frames the people in the photo using the rule of thirds (4:5). Adjust before applying.</span></button>`;
@@ -327,12 +491,28 @@
           <p class="ie-note">Drag the corners or edges; drag inside to move. Enter applies, Esc cancels.</p>`;
       }
     }
+    applyPreset(prId) {
+      const pr = PRESETS.find(p => p.id === prId);
+      if (!pr) return;
+      this.edit(e => {
+        e.preset = prId;
+        e.presetIntensity = 80;
+        if (pr.adj) {
+          for (const [k, v] of Object.entries(pr.adj)) {
+            e.adj[k] = v;
+          }
+        } else if (prId === "none") {
+          for (const [k] of ADJ) e.adj[k] = 0;
+        }
+      }, `Preset: ${pr.name}`);
+      this.renderPanel();
+    }
 
-    // ------------------------------------------------------------------ crop
+        // ------------------------------------------------------------------ crop
     startCrop(rect) {
       this.mode = "crop"; this.cropRect = rect || this.E.crop || { x: 0, y: 0, w: 1, h: 1 };
       this.cropEl.classList.remove("hidden"); this.panel = "crop";
-      this.host.querySelectorAll("[data-ie=adjust],[data-ie=ai],[data-ie=crop]").forEach(b => b.classList.toggle("on", b.dataset.ie === "crop"));
+      this.host.querySelectorAll("[data-ie=adjust],[data-ie=filters],[data-ie=details],[data-ie=ai],[data-ie=crop]").forEach(b => b.classList.toggle("on", b.dataset.ie === "crop"));
       this.renderPanel(); this.refresh(); this.fit();
     }
     endCrop(apply) {
@@ -464,6 +644,8 @@
 
     // ------------------------------------------------------------------ input
     click(ev) {
+      const prCard = ev.target.closest("[data-preset]");
+      if (prCard) { this.applyPreset(prCard.dataset.preset); return; }
       const b = ev.target.closest("[data-ie],[data-ratio]"); if (!b || b.disabled) return;
       if (b.dataset.ratio) { this.applyRatio(b.dataset.ratio); this.renderPanel(); return; }
       const a = b.dataset.ie;
@@ -474,8 +656,13 @@
         "flip-h": () => this.edit(e => { e.flipH = !e.flipH; e.crop = null; }), "flip-v": () => this.edit(e => { e.flipV = !e.flipV; e.crop = null; }),
         crop: () => (this.mode === "crop" ? this.endCrop(false) : this.startCrop()),
         "crop-apply": () => this.endCrop(true), "crop-cancel": () => this.endCrop(false), "crop-clear": () => { this.mode = "view"; this.cropEl.classList.add("hidden"); this.edit(e => { e.crop = null; }); this.panel = null; this.renderPanel(); },
-        adjust: () => this.openPanel("adjust"), ai: () => this.openPanel("ai"),
-        "adj-reset": () => { this.edit(e => { e.adj = blank().adj; }); this.renderPanel(); },
+        adjust: () => this.openPanel("adjust"),
+        filters: () => this.openPanel("filters"),
+        details: () => this.openPanel("details"),
+        ai: () => this.openPanel("ai"),
+        "adj-reset": () => { this.edit(e => { for (const [k] of [...ADJ_LIGHT, ...ADJ_COLOR]) e.adj[k] = 0; }, "Reset light & color"); this.renderPanel(); },
+        "filter-reset": () => this.applyPreset("none"),
+        "detail-reset": () => { this.edit(e => { for (const [k] of ADJ_DETAIL) e.adj[k] = 0; }, "Reset detail"); this.renderPanel(); },
         undo: () => this.doUndo(), redo: () => this.doRedo(),
         reset: async () => { if (await (window.PiDialog?.confirm({ title: "Discard all edits?", okText: "Discard", danger: true }) ?? true)) this.push(blank()); this.renderPanel(); },
         "ai-auto": () => this.autoEnhance(),
@@ -503,7 +690,17 @@
       else if (this.mode === "crop" && k === "Enter") { stop(); this.endCrop(true); }
       else if (this.mode === "crop" && k === "Escape") { stop(); this.endCrop(false); }
       else if (this.editable && (k === "r" || k === "R")) { stop(); this.edit(e => { e.rot = (e.rot + (ev.shiftKey ? 270 : 90)) % 360; e.crop = null; }); }
+      else if (k === "\\" && !ev.repeat) { stop(); this.comparing = true; this.$("[data-ie=compare]")?.classList.add("on"); this.refresh(); }
       else if (this.editable && (k === "c" || k === "C")) { stop(); this.mode === "crop" ? this.endCrop(false) : this.startCrop(); }
+    }
+    keyUp(ev) {
+      if (ev.key === "\\") {
+        if (this.comparing) {
+          this.comparing = false;
+          this.$("[data-ie=compare]")?.classList.remove("on");
+          this.refresh();
+        }
+      }
     }
   }
 

@@ -65,17 +65,23 @@ async function home() {
   if (kf.home) quick.unshift({ k: "userFolder", label: String(kf.home).replace(/[\\/]+$/, "").split(/[\\/]/).pop() || "Home folder", path: kf.home });
   const drives = ex().state?.drives || [];
   const recent = (ex().recent?.() || []).slice(0, 8);
+  const showQuick = pref("homeQuick", true);
+  const showDrives = pref("homeDrives", true);
+  const showNet = pref("homeNetwork", true);
+  const showRecent = pref("homeRecent", true);
+
   host.innerHTML = `<div class="pv-page hv">
-    <section class="hv-sec"><h2 class="hv-h">Quick access</h2>
+    ${showQuick ? `<section class="hv-sec"><h2 class="hv-h">Quick access</h2>
       <div class="hv-quick">${quick.map(q => `<button class="hv-tile" data-path="${esc(q.path)}" data-dir="1" title="${esc(q.path)}"><span class="hv-tile-ico">${P(q.k)}</span><span class="hv-tile-text"><b>${esc(q.label)}</b><small>${esc(q.path)}</small></span></button>`).join("")}</div>
-    </section>
-    <section class="hv-sec"><h2 class="hv-h">Drives <span class="hv-count">${drives.length}</span></h2>
+    </section>` : ""}
+    ${showDrives ? `<section class="hv-sec"><h2 class="hv-h">Drives <span class="hv-count">${drives.length}</span></h2>
       <div class="hv-drives">${drives.map(driveCard).join("") || `<div class="hv-empty">No drives found</div>`}</div>
-    </section>
-    <section class="hv-sec"><h2 class="hv-h">Network locations <span class="hv-count" id="hvNetCount"></span><span class="grow"></span><button class="pf-btn small" data-net-refresh title="Look for network locations again">${I("refresh")}</button><button class="pf-btn small" data-net-add>${I("add")} Add network location</button></h2>
+    </section>` : ""}
+    ${showNet ? `<section class="hv-sec"><h2 class="hv-h">Network locations <span class="hv-count" id="hvNetCount"></span><span class="grow"></span><button class="pf-btn small" data-net-refresh title="Look for network locations again">${I("refresh")}</button><button class="pf-btn small" data-net-add>${I("add")} Add network location</button></h2>
       <div class="hv-net" id="hvNet">${netCache ? netCards(netCache) : `<div class="hv-empty"><span class="spinner"></span> Looking for network locations…</div>`}</div>
-    </section>
-    ${recent.length ? `<section class="hv-sec"><h2 class="hv-h">Recent files<span class="grow"></span><button class="pf-btn small" data-recent-clear title="Forget recently opened files">${I("close")} Clear</button></h2><div class="hv-recent">${recent.map(r => `<button class="hv-recent-row" data-path="${esc(r.path)}" title="${esc(r.path)}"><span class="hv-recent-ico">${window.PiIcons ? PiIcons.file({ name: r.path }) : ""}</span><span class="grow"><b>${esc(base(r.path))}</b><small>${esc(r.path.replace(/[\\/][^\\/]*$/, ""))}</small></span><span class="hv-when">${esc(ex().fmtDate ? ex().fmtDate(String(Math.floor(r.t / 1000))) : "")}</span></button>`).join("")}</div></section>` : ""}
+    </section>` : ""}
+    ${showRecent && recent.length ? `<section class="hv-sec"><h2 class="hv-h">Recent files<span class="grow"></span><button class="pf-btn small" data-recent-clear title="Forget recently opened files">${I("close")} Clear</button></h2><div class="hv-recent">${recent.map(r => `<button class="hv-recent-row" data-path="${esc(r.path)}" title="${esc(r.path)}"><span class="hv-recent-ico">${window.PiIcons ? PiIcons.file({ name: r.path }) : ""}</span><span class="grow"><b>${esc(base(r.path))}</b><small>${esc(r.path.replace(/[\\/][^\\/]*$/, ""))}</small></span><span class="hv-when">${esc(ex().fmtDate ? ex().fmtDate(String(Math.floor(r.t / 1000))) : "")}</span></button>`).join("")}</div></section>` : ""}
+    ${!showQuick && !showDrives && !showNet && (!showRecent || !recent.length) ? `<div class="hv-empty" style="padding:48px 0;text-align:center"><div style="font-size:24px;margin-bottom:8px">🏡</div><b>All Home sections hidden</b><br><span style="color:var(--text-3);font-size:12px">Customize visible sections in Settings &rarr; General</span></div>` : ""}
   </div>`;
   if (!netCache) loadNet();
 }
@@ -297,7 +303,7 @@ function initHome() {
 initGallery();
 initDevices();
 initHome();
-window.addEventListener("pifiles:settings", e => { if (e.detail?.key === "trackRecent" && ex().state?.loc?.k === "home") home(); });
+window.addEventListener("pifiles:settings", e => { if (["trackRecent", "homeQuick", "homeDrives", "homeNetwork", "homeRecent"].includes(e.detail?.key) && ex().state?.loc?.k === "home") home(); });
 window.addEventListener("pifiles:icons", () => { const loc = ex().state?.loc?.k; if (loc === "home") home(); if (loc === "devices") devices(); renderSidebarNet(); });
 loadNet();
 

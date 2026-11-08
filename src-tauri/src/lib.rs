@@ -22,7 +22,7 @@ mod face_model;
 mod faces;
 mod fs;
 mod media;
-mod media_player;
+mod native_player;
 mod ops;
 mod people;
 mod search;
@@ -217,6 +217,13 @@ fn start_face_scan(root: Option<String>, force: Option<bool>) -> serde_json::Val
 }
 
 #[tauri::command]
+fn stop_face_scan() {
+    crate::faces::stop_scan();
+    crate::face_ai::release_models();
+    crate::perf::trim_memory();
+}
+
+#[tauri::command]
 fn get_face_scan_status() -> serde_json::Value {
     crate::faces::get_scan_status()
 }
@@ -374,52 +381,15 @@ async fn create_file(path: String) -> Result<String, String> {
 
 // ---------- viewer: movies, archives, spreadsheets ----------
 
+
 #[tauri::command]
-async fn media_probe(path: String) -> Result<media_player::MediaInfo, String> {
-    tauri::async_runtime::spawn_blocking(move || media_player::probe(std::path::Path::new(&path)))
-        .await
-        .map_err(|e| e.to_string())?
+fn media_open_native(path: String, start: Option<f64>, audio: Option<usize>) -> Result<(), String> {
+    native_player::launch(std::path::Path::new(&path), start, audio)
 }
 
 #[tauri::command]
-async fn media_subtitle(path: String, stream: Option<usize>, external: Option<String>) -> Result<String, String> {
-    tauri::async_runtime::spawn_blocking(move || {
-        media_player::subtitle_vtt(std::path::Path::new(&path), stream, external.as_deref().map(std::path::Path::new))
-    })
-    .await
-    .map_err(|e| e.to_string())?
-}
-
-#[tauri::command]
-async fn media_open(path: String, audio: Option<usize>, start: Option<f64>, mode: String, hevc: Option<bool>, subs: Option<Vec<usize>>) -> Result<media_player::StreamInfo, String> {
-    tauri::async_runtime::spawn_blocking(move || {
-        media_player::open(std::path::Path::new(&path), audio, start.unwrap_or(0.0), &mode, hevc.unwrap_or(false), &subs.unwrap_or_default())
-    })
-    .await
-    .map_err(|e| e.to_string())?
-}
-
-/// Next chunk of a playback stream as raw bytes (an empty buffer = end of stream).
-#[tauri::command]
-async fn media_read(id: u64) -> Result<tauri::ipc::Response, String> {
-    let chunk = tauri::async_runtime::spawn_blocking(move || media_player::read(id)).await.map_err(|e| e.to_string())??;
-    Ok(tauri::ipc::Response::new(chunk))
-}
-
-/// Subtitle cues produced so far by a playback session (no extra pass over the file).
-#[tauri::command]
-fn media_subs(id: u64, stream: usize, from: u64) -> Result<media_player::SubsChunk, String> {
-    media_player::subs_read(id, stream, from)
-}
-
-#[tauri::command]
-fn media_close(id: u64) {
-    media_player::close(id)
-}
-
-#[tauri::command]
-fn media_available() -> bool {
-    media_player::available()
+fn media_native_available() -> bool {
+    native_player::available()
 }
 
 #[tauri::command]
@@ -471,6 +441,79 @@ async fn rename_item(old: String, new: String) -> Result<String, String> {
 
 
 // Window control commands for custom borderless titlebar
+#[tauri::command]
+fn show_main_window(window: tauri::Window) {
+    let _ = window.show();
+    let _ = window.set_focus();
+    #[cfg(windows)]
+    {
+        use windows::Win32::Foundation::HWND;
+        if let Ok(hwnd) = window.hwnd() {
+            system::apply_hwnd_icon(HWND(hwnd.0 as *mut std::ffi::c_void));
+        }
+    }
+}
+
+#[tauri::command]
+fn is_default_file_manager() -> bool {
+    system::is_default_file_manager()
+}
+
+#[tauri::command]
+fn set_default_file_manager(enable: bool) -> Result<(), String> {
+    system::set_default_file_manager(enable)
+}
+
+#[tauri::command]
+fn get_cli_path() -> Option<String> {
+    std::env::args().skip(1).find(|a| !a.starts_with("--") && std::path::Path::new(a).exists())
+}
+
+#[tauri::command]
+fn open_this_pc_properties() -> Result<(), String> {
+    system::open_this_pc_properties()
+}
+
+#[tauri::command]
+fn get_disk_analyzer_path() -> Option<String> {
+    system::get_disk_analyzer_path()
+}
+
+#[tauri::command]
+fn launch_disk_analyzer(path: Option<String>) -> Result<(), String> {
+    system::launch_disk_analyzer(path)
+}
+
+#[tauri::command]
+fn open_recycle_bin() -> Result<(), String> {
+    system::open_recycle_bin()
+}
+
+#[tauri::command]
+fn list_recycle_bin_items() -> Result<Vec<system::RecycleBinItem>, String> {
+    system::list_recycle_bin_items()
+}
+
+#[tauri::command]
+fn restore_recycle_bin_items(names: Vec<String>) -> Result<(), String> {
+    system::restore_recycle_bin_items(names)
+}
+
+#[tauri::command]
+fn empty_recycle_bin() -> Result<(), String> {
+    system::empty_recycle_bin()
+}
+
+#[tauri::command]
+fn get_startup_status() -> Result<system::StartupStatus, String> {
+    system::get_startup_status()
+}
+
+#[tauri::command]
+fn set_startup_status(enabled: bool, elevated: bool, minimized: bool) -> Result<(), String> {
+    system::set_startup_status(enabled, elevated, minimized)
+}
+
 #[tauri::command]
 fn minimize_window(window: tauri::Window) {
     let _ = window.minimize();
@@ -1183,6 +1226,10 @@ async fn open_properties_window(app: tauri::AppHandle, paths: Vec<String>) -> Re
         .center()
         .build()
         .map_err(|e| e.to_string())?;
+    if let Some(icon) = app.default_window_icon() {
+        let _ = w.set_icon(icon.clone());
+    }
+    system::apply_window_icon(&w);
     system::harden_webview(&w);
     let l = label.clone();
     w.on_window_event(move |e| {
@@ -1337,6 +1384,16 @@ fn guarded<R: tauri::Runtime>(inner: impl Fn(tauri::ipc::Invoke<R>) -> bool + Se
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    system::set_app_user_model_id();
+    #[cfg(windows)]
+    if std::env::var_os("PIFILES_DEBUG_PROCESSES").is_none() {
+        if std::env::var_os("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS").is_none() {
+            std::env::set_var(
+                "WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS",
+                "--enable-features=PlatformHEVCDecoderSupport,NetworkServiceInProcess --disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection,AudioServiceOutOfProcess,UtilityProcessForStorageService --disable-breakpad --disable-crash-reporter --enable-blink-features=AudioVideoTracks --ignore-gpu-blocklist",
+            );
+        }
+    }
     integrity::enforce();
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
@@ -1347,27 +1404,31 @@ pub fn run() {
             use tauri::Manager;
             perf::configure_threads();
             if let Some(w) = app.get_webview_window("main") {
+                if let Some(icon) = app.default_window_icon() {
+                    let _ = w.set_icon(icon.clone());
+                }
+                system::apply_window_icon(&w);
                 system::harden_webview(&w);
                 perf::watch_window(&w);
+                let w_fallback = w.clone();
+                std::thread::spawn(move || {
+                    std::thread::sleep(std::time::Duration::from_millis(350));
+                    let _ = w_fallback.show();
+                    system::apply_window_icon(&w_fallback);
+                });
             }
-            media_player::init(app.path().resource_dir().ok());
+                        native_player::init(app.path().resource_dir().ok());
             versions::init();
             // Background work starts after the window is up, staggered so the first paint and
             // first folder load get the CPU and disk. Low-end machines wait longer between jobs.
             fs::load_folder_size_cache();
-            let handle = app.handle().clone();
             std::thread::Builder::new()
                 .name("startup-jobs".into())
                 .spawn(move || {
                     let low = perf::profile().tier == "low";
                     let wait = |s: u64| std::thread::sleep(std::time::Duration::from_secs(s));
-                    wait(if low { 6 } else { 2 });
-                    library::spawn_scan(Some(handle));
-                    wait(if low { 30 } else { 8 });
+                    wait(if low { 25 } else { 10 });
                     search::spawn_background_index();
-                    // Face scan is the heaviest job: fully local, low priority, models freed afterwards.
-                    wait(if low { 180 } else { 30 });
-                    crate::faces::spawn_full_machine_scan(false);
                 })
                 .ok();
             Ok(())
@@ -1382,6 +1443,7 @@ pub fn run() {
             rebuild_index,
             get_media_groups,
             start_face_scan,
+            stop_face_scan,
             get_face_scan_status,
             get_all_drives_scan_status,
             get_device_groups,
@@ -1407,18 +1469,26 @@ pub fn run() {
             create_folder,
             create_file,
             get_known_folders,
-            media_probe,
-            media_subtitle,
-            media_open,
-            media_read,
-            media_subs,
-            media_close,
-            media_available,
+            media_open_native,
+            media_native_available,
             archive_list,
             archive_extract_entry,
             archive_extract_all,
             sheet_read,
             rename_item,
+            show_main_window,
+            is_default_file_manager,
+            set_default_file_manager,
+            open_recycle_bin,
+            list_recycle_bin_items,
+            restore_recycle_bin_items,
+            empty_recycle_bin,
+            get_startup_status,
+            set_startup_status,
+            get_cli_path,
+            open_this_pc_properties,
+            get_disk_analyzer_path,
+            launch_disk_analyzer,
             minimize_window,
             toggle_maximize_window,
             is_window_maximized,
@@ -1509,33 +1579,7 @@ mod viewer_real_files {
     #[ignore]
     fn viewer_real_files() {
         use std::path::Path;
-        let home = std::env::var("USERPROFILE").unwrap_or_default();
-        let hevc = format!(r"{home}\Downloads\www.1TamilMV.meme - Vishwanath and Sons (2026) Tamil HQ HDRip - 1080p - HEVC - x265 - (DD+5.1 - 192Kbps & AAC 2.0) - 1.7GB - ESub.mkv");
-        for p in [hevc.as_str(), r"F:\Jilebi (2015) Malayalam DVDRip x264 AAC 5.1 E-Subs-MBRHDRG.mkv"] {
-            let t = std::time::Instant::now();
-            match crate::media_player::probe(Path::new(p)) {
-                Ok(i) => {
-                    let v = i.video.as_ref().map(|v| format!("{} {}x{} {}", v.codec, v.width, v.height, v.pix_fmt)).unwrap_or_default();
-                    let a: Vec<String> = i.audio.iter().map(|a| format!("#{} {} {}ch {}", a.index, a.codec, a.channels, a.language)).collect();
-                    let s: Vec<String> = i.subtitles.iter().map(|s| format!("{} {} {} text={}", s.id, s.codec, s.language, s.text)).collect();
-                    println!("{:?} {:.0}s direct={} | {v} | audio {a:?} | subs {s:?} ({:?})",
-                             Path::new(p).file_name().unwrap(), i.duration, i.direct_play, t.elapsed());
-                    if let Some(sub) = i.subtitles.iter().find(|s| s.text) {
-                        let t = std::time::Instant::now();
-                        let vtt = crate::media_player::subtitle_vtt(Path::new(p), sub.index, sub.external.as_deref().map(Path::new));
-                        println!("   subtitle {}: {} cues in {:?}", sub.id, vtt.map(|v| v.matches("-->").count()).unwrap_or(0), t.elapsed());
-                    }
-                    let copy_ok = i.video.as_ref().map_or(false, |v| v.codec == "h264");
-                    let mode = if copy_ok { "copy" } else { "encode" };
-                    let t = std::time::Instant::now();
-                    let st = crate::media_player::open(Path::new(p), i.audio.last().map(|a| a.index), 600.0, mode, false, &[]).unwrap();
-                    crate::media_player::close(st.id);
-                    println!("   stream {mode} from 600s -> starts at {:.2}s (lookup {:?})", st.offset, t.elapsed());
-                }
-                Err(e) => println!("{p}: {e}"),
-            }
-        }
-        for p in [r"D:\EFI.rar", r"E:\AppNee.com.WinRAR.Registration.keyfile.Generator.v5.01.7z"] {
+                for p in [r"D:\EFI.rar", r"E:\AppNee.com.WinRAR.Registration.keyfile.Generator.v5.01.7z"] {
             match crate::archive::list(Path::new(p), None) {
                 Ok(l) => println!("{:?}: {} {} entries, encrypted={} first={:?}", Path::new(p).file_name().unwrap(), l.format, l.entries.len(), l.encrypted, l.entries.first().map(|e| &e.name)),
                 Err(e) => println!("{p}: {e}"),

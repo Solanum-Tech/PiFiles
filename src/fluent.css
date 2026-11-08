@@ -432,11 +432,17 @@ img.fx-img:not(.fx-loaded) { opacity: 0; filter: blur(6px); }
 @keyframes fx-indeterminate { from { background-position: -40% 0; } to { background-position: 140% 0; } }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *:not(.spinner):not(.lm-spin):not(.pv-spinner-ring):not(.pv-ring-head),
+  *:not(.spinner):not(.lm-spin):not(.pv-spinner-ring):not(.pv-ring-head)::before,
+  *:not(.spinner):not(.lm-spin):not(.pv-spinner-ring):not(.pv-ring-head)::after {
     animation-duration: 1ms !important;
     animation-iteration-count: 1 !important;
     animation-delay: 0ms !important;
     transition-duration: 1ms !important;
+  }
+  .spinner, .lm-spin, .pv-spinner-ring {
+    animation-duration: 2.0s !important;
+    animation-iteration-count: infinite !important;
   }
   img.fx-img:not(.fx-loaded) { opacity: 1; filter: none; }
 }

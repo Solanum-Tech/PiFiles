@@ -54,7 +54,7 @@ impl Zip {
         Some(v)
     }
     fn names(&self) -> Vec<String> {
-        self.z.file_names().map(String::from).collect()
+        self.z.file_names().filter_map(|r| r.ok()).map(|n| n.to_string()).collect()
     }
 }
 

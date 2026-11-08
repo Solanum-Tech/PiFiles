@@ -17,10 +17,37 @@ if (Test-Path (Join-Path $Dest "ffmpeg.exe")) { Write-Host "FFmpeg already prese
 New-Item -ItemType Directory -Force $Tmp | Out-Null
 $Zip = Join-Path $Tmp "$Name.zip"
 Write-Host "Downloading $Url (77 MB)..."
-Invoke-WebRequest -Uri $Url -OutFile $Zip -UseBasicParsing
 
-$Actual = (Get-FileHash $Zip -Algorithm SHA256).Hash.ToLower()
-if ($Actual -ne $Sha256) { throw "Checksum mismatch: expected $Sha256, got $Actual" }
+$MaxAttempts = 5
+for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
+    try {
+        if ($attempt -gt 1) {
+            Write-Host "Download attempt $attempt of $MaxAttempts..."
+        }
+        if (Test-Path $Zip) { Remove-Item $Zip -Force }
+
+        if (Get-Command curl.exe -ErrorAction SilentlyContinue) {
+            & curl.exe --retry 3 --retry-connrefused --retry-delay 2 -fSL $Url -o $Zip
+            if ($LASTEXITCODE -ne 0) {
+                throw "curl failed with exit code $LASTEXITCODE"
+            }
+        } else {
+            Invoke-WebRequest -Uri $Url -OutFile $Zip -UseBasicParsing
+        }
+
+        $Actual = (Get-FileHash $Zip -Algorithm SHA256).Hash.ToLower()
+        if ($Actual -ne $Sha256) {
+            throw "Checksum mismatch: expected $Sha256, got $Actual"
+        }
+        break
+    } catch {
+        if ($attempt -eq $MaxAttempts) {
+            throw "Failed to download and verify FFmpeg after $MaxAttempts attempts: $_"
+        }
+        Write-Warning "Download/verification failed: $_. Retrying in $($attempt * 3) seconds..."
+        Start-Sleep -Seconds ($attempt * 3)
+    }
+}
 
 Expand-Archive $Zip -DestinationPath $Tmp -Force
 $Bin = Join-Path $Tmp "$Name\bin"

@@ -4,7 +4,9 @@ node_modules/
 src-tauri/ffmpeg/*.exe
 src-tauri/ffmpeg/*.dll
 # mpv native runtime - fetched by scripts/fetch-mpv.ps1
-src-tauri/mpv/
+src-tauri/mpv/*.exe
+src-tauri/mpv/*.com
+src-tauri/mpv/portable_config/cache/
 
 # Markdown: only the README is published (progress notes, docs and other .md files stay local).
 # GitHub's own configuration (.github: PR template, security policy) is kept.

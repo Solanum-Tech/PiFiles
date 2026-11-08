@@ -56,6 +56,19 @@ fn main() {
     pins.push_str("];\n");
     std::fs::write(std::path::Path::new(&std::env::var("OUT_DIR").unwrap()).join("ffmpeg_pins.rs"), pins).expect("write pins");
 
+    // Ensure resource directories exist so tauri-build resource globs don't fail in fresh CI checkouts
+    let _ = std::fs::create_dir_all("mpv");
+    let mpv_readme = std::path::Path::new("mpv").join("README.txt");
+    if !mpv_readme.exists() {
+        let _ = std::fs::write(&mpv_readme, "mpv runtime binaries are downloaded by scripts/fetch-mpv.ps1\n");
+    }
+    let port_cfg = std::path::Path::new("mpv").join("portable_config");
+    let _ = std::fs::create_dir_all(&port_cfg);
+    let port_placeholder = port_cfg.join("placeholder.txt");
+    if !port_placeholder.exists() && std::fs::read_dir(&port_cfg).map(|mut d| d.next().is_none()).unwrap_or(true) {
+        let _ = std::fs::write(&port_placeholder, "placeholder\n");
+    }
+
     let commands: &'static [&'static str] = Box::leak(commands.into_boxed_slice());
     tauri_build::try_build(tauri_build::Attributes::new().app_manifest(tauri_build::AppManifest::new().commands(commands)))
         .expect("tauri build");

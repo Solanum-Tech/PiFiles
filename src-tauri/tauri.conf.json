@@ -85,7 +85,8 @@
     ],
     "resources": {
       "ffmpeg/*": "ffmpeg/",
-      "mpv/**/*": "mpv/"
+      "mpv/*": "mpv/",
+      "mpv/portable_config/**/*": "mpv/portable_config/"
     },
     "createUpdaterArtifacts": true,
     "windows": {

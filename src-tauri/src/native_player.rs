@@ -121,6 +121,14 @@ mod tests {
     #[test]
     fn test_native_player_available() {
         init(None);
-        assert!(available(), "mpv.exe should be present in src-tauri/mpv");
+        let is_avail = available();
+        let exe_exists = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("mpv")
+            .join("mpv.exe")
+            .is_file();
+        assert_eq!(
+            is_avail, exe_exists,
+            "available() must match physical presence of mpv.exe"
+        );
     }
 }
